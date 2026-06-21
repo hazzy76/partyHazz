@@ -1,0 +1,13 @@
+2026-06-18 17:36:18.083 INFO  [com.partyhazz.MainVerticle] ╔══════════════════════════════════════════╗
+2026-06-18 17:36:18.083 INFO  [com.partyhazz.MainVerticle] ║  PartyHazz WebSocket Server              ║
+2026-06-18 17:36:18.083 INFO  [com.partyhazz.MainVerticle] ║  Listening on ws://0.0.0.0:8080            ║
+2026-06-18 17:36:18.084 INFO  [com.partyhazz.MainVerticle] ║  Endpoint: ws://<host>:8080/ws             ║
+2026-06-18 17:36:18.084 INFO  [com.partyhazz.MainVerticle] ╚══════════════════════════════════════════╝
+2026-06-18 17:36:18.084 INFO  [com.partyhazz.MainVerticle] MainVerticle deployed: 8031710c-ff2b-4da6-a11d-ee4e884366bf
+2026-06-18 18:45:14.844 INFO  [com.partyhazz.MessageCtrl] Participante conectado: f4edf568-d401-403f-a062-6ab04ff1d37b
+2026-06-18 18:45:23.189 INFO  [com.partyhazz.SalaBs] Sala creada: YXNJQQ por el participante f4edf568-d401-403f-a062-6ab04ff1d37b
+2026-06-18 18:47:29.609 INFO  [com.partyhazz.SalaBs] Participante f4edf568-d401-403f-a062-6ab04ff1d37b se une a la sala YXNJQQ (2 total)
+2026-06-18 18:55:20.014 INFO  [com.partyhazz.SalaBs] Sala creada: SZH5MV por el participante f4edf568-d401-403f-a062-6ab04ff1d37b
+2026-06-18 18:55:23.755 INFO  [com.partyhazz.SalaBs] Participante f4edf568-d401-403f-a062-6ab04ff1d37b se fue alv de la sala SZH5MV (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-18 18:55:23.757 INFO  [com.partyhazz.SalaBs] Sala SZH5MV destruida (vacía)
+2026-06-18 18:55:23.763 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: f4edf568-d401-403f-a062-6ab04ff1d37b (code=1000, reason=DEJAR_SALA voluntario)

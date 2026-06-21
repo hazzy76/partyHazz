@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PartyHazz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+
+  <!-- ======================================================================
+       Vista: Sin sala (default)
+  ====================================================================== -->
+  <div id="vista-inicio" class="vista activa">
+
+    <div class="ph-header">
+      <span class="ph-logo-icon">🎉</span>
+      <h1 class="ph-titulo">Party<span class="ph-ac.cent">Hazz</span></h1>
+      <p class="ph-subtitulo">Party para el crunchyroll (por ahora xD)</p>
+    </div>
+
+    <!-- Indicador de conexion al servidor -->
+    <div id="indicador-servidor" class="ph-servidor ph-servidor--desconectado">
+      <span class="ph-servidor-dot"></span>
+      <span id="texto-servidor">No estás conectado a neiden =(</span>
+    </div>
+
+    <div class="ph-acciones">
+      <button id="btn-crear" class="ph-btn ph-btn--primario">
+        <span class="ph-btn-icon">✨</span>
+        Crear sala
+      </button>
+
+      <div class="ph-divider">
+        <span>o</span>
+      </div>
+
+      <div class="ph-input-grupo">
+        <input id="input-id-sala" type="text" class="ph-input" placeholder="Codigo de sala (ej: XK7P2F)" maxlength="6"
+          autocomplete="off" spellcheck="false" />
+        <button id="btn-unirse" class="ph-btn ph-btn--secundario">
+          Unirse
+        </button>
+      </div>
+
+      <p id="msg-error-inicio" class="ph-msg-error oculto"></p>
+    </div>
+
+    <!-- Config del servidor (colapsable) -->
+    <details class="ph-config">
+      <summary class="ph-config-summary">⚙ Configuracion del servidor</summary>
+      <div class="ph-config-body">
+        <label class="ph-label" for="input-url-servidor">URL del servidor WebSocket</label>
+        <input id="input-url-servidor" type="text" class="ph-input ph-input--small"
+          placeholder="ws://localhost:8080/ws" />
+        <button id="btn-guardar-config" class="ph-btn ph-btn--ghost">Guardar</button>
+        <p id="msg-config" class="ph-msg-ok oculto">✓ Guardado</p>
+      </div>
+    </details>
+
+  </div>
+
+  <!-- ======================================================================
+       Vista: En sala
+  ====================================================================== -->
+  <div id="vista-sala" class="vista">
+
+    <div class="ph-header ph-header--sala">
+      <span class="ph-logo-icon">🎉</span>
+      <h1 class="ph-titulo">Party<span class="ph-accent">Hazz</span></h1>
+    </div>
+
+    <!-- Room ID grande, copiable -->
+    <div class="ph-room-card">
+      <p class="ph-room-label">Codigo de sala</p>
+      <button id="btn-copiar-sala" class="ph-room-id" title="Clic para copiar">
+        <span id="texto-id-sala">------</span>
+        <span id="icono-copiar" class="ph-copy-icon">📋</span>
+      </button>
+      <p id="msg-copiado" class="ph-msg-ok oculto">✓ Copiado al portapapeles</p>
+    </div>
+
+    <!-- Info de la sala -->
+    <div class="ph-sala-info">
+      <div class="ph-info-item">
+        <span class="ph-info-label">Rol</span>
+        <span id="texto-rol" class="ph-info-valor ph-badge-host">Host 👑</span>
+      </div>
+      <div class="ph-info-item">
+        <span class="ph-info-label">Participantes</span>
+        <span id="texto-participantes" class="ph-info-valor">1</span>
+      </div>
+      <div class="ph-info-item">
+        <span class="ph-info-label">Estado</span>
+        <span id="texto-sync" class="ph-info-valor ph-sync-ok">✓ Sincronizado</span>
+      </div>
+    </div>
+
+    <button id="btn-salir-sala" class="ph-btn ph-btn--danger">
+      Abandonar sala
+    </button>
+
+  </div>
+
+  <!-- ======================================================================
+       Vista: Cargando
+  ====================================================================== -->
+  <div id="vista-cargando" class="vista">
+    <div class="ph-spinner-wrap">
+      <div class="ph-spinner"></div>
+      <p id="texto-cargando" class="ph-cargando-texto">Conectando...</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

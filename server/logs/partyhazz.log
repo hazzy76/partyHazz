@@ -1,0 +1,83 @@
+2026-06-21 16:15:27.964 INFO  [com.partyhazz.MainVerticle] ╔══════════════════════════════════════════╗
+2026-06-21 16:15:27.979 INFO  [com.partyhazz.MainVerticle] ║  PartyHazz WebSocket Server              ║
+2026-06-21 16:15:27.980 INFO  [com.partyhazz.MainVerticle] ║  Listening on ws://0.0.0.0:8080            ║
+2026-06-21 16:15:27.980 INFO  [com.partyhazz.MainVerticle] ║  Endpoint: ws://<host>:8080/ws             ║
+2026-06-21 16:15:27.981 INFO  [com.partyhazz.MainVerticle] ╚══════════════════════════════════════════╝
+2026-06-21 16:15:27.981 INFO  [com.partyhazz.MainVerticle] MainVerticle deployed: a1d16e4f-6023-43f6-bf70-e1afd9c992bf
+2026-06-21 16:18:12.179 INFO  [com.partyhazz.MessageCtrl] Participante conectado: a9b28736-7b0a-4f31-b002-fe41ef896e80
+2026-06-21 16:18:12.493 INFO  [com.partyhazz.SalaBs] Sala creada: D9YXUU por el participante a9b28736-7b0a-4f31-b002-fe41ef896e80
+2026-06-21 16:19:55.403 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: a9b28736-7b0a-4f31-b002-fe41ef896e80 (code=1001, reason=null)
+2026-06-21 16:19:55.404 INFO  [com.partyhazz.SalaBs] Participante a9b28736-7b0a-4f31-b002-fe41ef896e80 se fue alv de la sala D9YXUU (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:19:55.404 INFO  [com.partyhazz.SalaBs] Sala D9YXUU destruida (vacía)
+2026-06-21 16:20:02.554 INFO  [com.partyhazz.MessageCtrl] Participante conectado: 22aa74ff-ecab-4f3a-a4e1-6da0572163fd
+2026-06-21 16:20:02.953 INFO  [com.partyhazz.SalaBs] Sala creada: FEUCN9 por el participante 22aa74ff-ecab-4f3a-a4e1-6da0572163fd
+2026-06-21 16:20:37.763 INFO  [com.partyhazz.SalaBs] Sala creada: ECCMBK por el participante 22aa74ff-ecab-4f3a-a4e1-6da0572163fd
+2026-06-21 16:21:34.062 INFO  [com.partyhazz.SalaBs] Participante 22aa74ff-ecab-4f3a-a4e1-6da0572163fd se fue alv de la sala ECCMBK (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:21:34.062 INFO  [com.partyhazz.SalaBs] Sala ECCMBK destruida (vacía)
+2026-06-21 16:21:34.063 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: 22aa74ff-ecab-4f3a-a4e1-6da0572163fd (code=1000, reason=DEJAR_SALA voluntario)
+2026-06-21 16:22:07.963 INFO  [com.partyhazz.MessageCtrl] Participante conectado: 0ad3a481-9902-4930-815c-20f2dfe50b43
+2026-06-21 16:22:08.358 INFO  [com.partyhazz.SalaBs] Sala creada: WEE2ZD por el participante 0ad3a481-9902-4930-815c-20f2dfe50b43
+2026-06-21 16:22:42.757 INFO  [com.partyhazz.SalaBs] Participante 0ad3a481-9902-4930-815c-20f2dfe50b43 se fue alv de la sala WEE2ZD (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:22:42.758 INFO  [com.partyhazz.SalaBs] Sala WEE2ZD destruida (vacía)
+2026-06-21 16:22:42.759 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: 0ad3a481-9902-4930-815c-20f2dfe50b43 (code=1000, reason=DEJAR_SALA voluntario)
+2026-06-21 16:22:56.201 INFO  [com.partyhazz.MessageCtrl] Participante conectado: 2f2d7615-f101-4915-826b-9b349362646d
+2026-06-21 16:22:56.597 INFO  [com.partyhazz.SalaBs] Sala creada: JNBPLR por el participante 2f2d7615-f101-4915-826b-9b349362646d
+2026-06-21 16:22:57.957 INFO  [com.partyhazz.SalaBs] Participante 2f2d7615-f101-4915-826b-9b349362646d se fue alv de la sala JNBPLR (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:22:57.958 INFO  [com.partyhazz.SalaBs] Sala JNBPLR destruida (vacía)
+2026-06-21 16:22:57.959 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: 2f2d7615-f101-4915-826b-9b349362646d (code=1000, reason=DEJAR_SALA voluntario)
+2026-06-21 16:24:21.331 INFO  [com.partyhazz.MessageCtrl] Participante conectado: 0b9c36c7-c8af-42f6-85d0-4e751a269257
+2026-06-21 16:24:21.725 INFO  [com.partyhazz.SalaBs] Sala creada: XWKWG3 por el participante 0b9c36c7-c8af-42f6-85d0-4e751a269257
+2026-06-21 16:26:34.044 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: 0b9c36c7-c8af-42f6-85d0-4e751a269257 (code=1001, reason=null)
+2026-06-21 16:26:34.045 INFO  [com.partyhazz.SalaBs] Participante 0b9c36c7-c8af-42f6-85d0-4e751a269257 se fue alv de la sala XWKWG3 (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:26:34.045 INFO  [com.partyhazz.SalaBs] Sala XWKWG3 destruida (vacía)
+2026-06-21 16:29:17.858 INFO  [com.partyhazz.MessageCtrl] Participante conectado: 367a193f-8358-48fe-ad57-740d7d980caa
+2026-06-21 16:29:18.244 INFO  [com.partyhazz.SalaBs] Sala creada: AZ7BZH por el participante 367a193f-8358-48fe-ad57-740d7d980caa
+2026-06-21 16:31:43.197 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: 367a193f-8358-48fe-ad57-740d7d980caa (code=1001, reason=null)
+2026-06-21 16:31:43.197 INFO  [com.partyhazz.SalaBs] Participante 367a193f-8358-48fe-ad57-740d7d980caa se fue alv de la sala AZ7BZH (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:31:43.197 INFO  [com.partyhazz.SalaBs] Sala AZ7BZH destruida (vacía)
+2026-06-21 16:32:21.053 INFO  [com.partyhazz.MessageCtrl] Participante conectado: 188c6a7c-2a3f-4cad-a294-1f27dfbc0de7
+2026-06-21 16:32:21.446 INFO  [com.partyhazz.SalaBs] Sala creada: HVF6UC por el participante 188c6a7c-2a3f-4cad-a294-1f27dfbc0de7
+2026-06-21 16:33:43.394 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: 188c6a7c-2a3f-4cad-a294-1f27dfbc0de7 (code=1001, reason=null)
+2026-06-21 16:33:43.394 INFO  [com.partyhazz.SalaBs] Participante 188c6a7c-2a3f-4cad-a294-1f27dfbc0de7 se fue alv de la sala HVF6UC (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:33:43.395 INFO  [com.partyhazz.SalaBs] Sala HVF6UC destruida (vacía)
+2026-06-21 16:34:28.590 INFO  [com.partyhazz.MessageCtrl] Participante conectado: b7c5ca0d-3a27-4b86-8ec0-b06276fcf458
+2026-06-21 16:34:28.988 INFO  [com.partyhazz.SalaBs] Sala creada: H6KMC6 por el participante b7c5ca0d-3a27-4b86-8ec0-b06276fcf458
+2026-06-21 16:42:59.990 INFO  [com.partyhazz.SalaBs] Sala creada: 5YUBJD por el participante b7c5ca0d-3a27-4b86-8ec0-b06276fcf458
+2026-06-21 16:44:33.039 INFO  [com.partyhazz.SalaBs] Participante b7c5ca0d-3a27-4b86-8ec0-b06276fcf458 se fue alv de la sala 5YUBJD (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:44:33.040 INFO  [com.partyhazz.SalaBs] Sala 5YUBJD destruida (vacía)
+2026-06-21 16:44:33.040 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: b7c5ca0d-3a27-4b86-8ec0-b06276fcf458 (code=1000, reason=DEJAR_SALA voluntario)
+2026-06-21 16:45:05.465 INFO  [com.partyhazz.MessageCtrl] Participante conectado: a8a58c16-fab4-4b37-b64f-d625f13506c6
+2026-06-21 16:45:05.863 INFO  [com.partyhazz.SalaBs] Sala creada: 83EHAF por el participante a8a58c16-fab4-4b37-b64f-d625f13506c6
+2026-06-21 16:46:16.066 INFO  [com.partyhazz.SalaBs] Participante a8a58c16-fab4-4b37-b64f-d625f13506c6 se fue alv de la sala 83EHAF (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:46:16.067 INFO  [com.partyhazz.SalaBs] Sala 83EHAF destruida (vacía)
+2026-06-21 16:46:16.068 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: a8a58c16-fab4-4b37-b64f-d625f13506c6 (code=1000, reason=DEJAR_SALA voluntario)
+2026-06-21 16:46:48.244 INFO  [com.partyhazz.MessageCtrl] Participante conectado: 4771d33f-cc48-49ec-b340-5cab5b5dad7f
+2026-06-21 16:46:48.640 INFO  [com.partyhazz.SalaBs] Sala creada: QWY5GG por el participante 4771d33f-cc48-49ec-b340-5cab5b5dad7f
+2026-06-21 16:51:32.965 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: 4771d33f-cc48-49ec-b340-5cab5b5dad7f (code=1001, reason=null)
+2026-06-21 16:51:32.966 INFO  [com.partyhazz.SalaBs] Participante 4771d33f-cc48-49ec-b340-5cab5b5dad7f se fue alv de la sala QWY5GG (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:51:32.966 INFO  [com.partyhazz.SalaBs] Sala QWY5GG destruida (vacía)
+2026-06-21 16:51:40.022 INFO  [com.partyhazz.MessageCtrl] Participante conectado: f4f17c1d-4809-46ff-85c4-0afded38b58b
+2026-06-21 16:51:40.417 INFO  [com.partyhazz.SalaBs] Sala creada: X2F66W por el participante f4f17c1d-4809-46ff-85c4-0afded38b58b
+2026-06-21 16:52:53.438 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: f4f17c1d-4809-46ff-85c4-0afded38b58b (code=1001, reason=null)
+2026-06-21 16:52:53.438 INFO  [com.partyhazz.SalaBs] Participante f4f17c1d-4809-46ff-85c4-0afded38b58b se fue alv de la sala X2F66W (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 16:52:53.438 INFO  [com.partyhazz.SalaBs] Sala X2F66W destruida (vacía)
+2026-06-21 16:53:03.093 INFO  [com.partyhazz.MessageCtrl] Participante conectado: f610cd44-ff44-4545-b45d-af3833bd5783
+2026-06-21 16:53:03.490 INFO  [com.partyhazz.SalaBs] Sala creada: KRFL69 por el participante f610cd44-ff44-4545-b45d-af3833bd5783
+2026-06-21 17:11:10.085 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: f610cd44-ff44-4545-b45d-af3833bd5783 (code=1001, reason=null)
+2026-06-21 17:11:10.086 INFO  [com.partyhazz.SalaBs] Participante f610cd44-ff44-4545-b45d-af3833bd5783 se fue alv de la sala KRFL69 (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 17:11:10.086 INFO  [com.partyhazz.SalaBs] Sala KRFL69 destruida (vacía)
+2026-06-21 17:11:57.180 INFO  [com.partyhazz.MessageCtrl] Participante conectado: b2e9148d-d851-400a-8d64-af15350e77f9
+2026-06-21 17:11:57.575 INFO  [com.partyhazz.SalaBs] Sala creada: 859QD4 por el participante b2e9148d-d851-400a-8d64-af15350e77f9
+2026-06-21 17:12:18.547 INFO  [com.partyhazz.SalaBs] Participante b2e9148d-d851-400a-8d64-af15350e77f9 se fue alv de la sala 859QD4 (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 17:12:18.548 INFO  [com.partyhazz.SalaBs] Sala 859QD4 destruida (vacía)
+2026-06-21 17:12:18.549 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: b2e9148d-d851-400a-8d64-af15350e77f9 (code=1000, reason=DEJAR_SALA voluntario)
+2026-06-21 17:12:20.263 INFO  [com.partyhazz.MessageCtrl] Participante conectado: 22c25e86-3d3b-4970-8924-47561f840299
+2026-06-21 17:12:20.660 INFO  [com.partyhazz.SalaBs] Sala creada: 429QTG por el participante 22c25e86-3d3b-4970-8924-47561f840299
+2026-06-21 17:12:21.428 INFO  [com.partyhazz.SalaBs] Participante 22c25e86-3d3b-4970-8924-47561f840299 se fue alv de la sala 429QTG (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 17:12:21.429 INFO  [com.partyhazz.SalaBs] Sala 429QTG destruida (vacía)
+2026-06-21 17:12:21.429 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: 22c25e86-3d3b-4970-8924-47561f840299 (code=1000, reason=DEJAR_SALA voluntario)
+2026-06-21 17:12:38.272 INFO  [com.partyhazz.MessageCtrl] Participante conectado: aa34dc89-7a0e-4a20-842f-3fbbb0620944
+2026-06-21 17:12:38.665 INFO  [com.partyhazz.SalaBs] Sala creada: FTBG2K por el participante aa34dc89-7a0e-4a20-842f-3fbbb0620944
+2026-06-21 17:12:40.279 INFO  [com.partyhazz.SalaBs] Participante aa34dc89-7a0e-4a20-842f-3fbbb0620944 se fue alv de la sala FTBG2K (isVoluntad: true, eraHost: true, quedan: 0)
+2026-06-21 17:12:40.280 INFO  [com.partyhazz.SalaBs] Sala FTBG2K destruida (vacía)
+2026-06-21 17:12:40.282 INFO  [com.partyhazz.MessageCtrl] Cliente desconectado: aa34dc89-7a0e-4a20-842f-3fbbb0620944 (code=1000, reason=DEJAR_SALA voluntario)

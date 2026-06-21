@@ -1,0 +1,440 @@
+/* popup.css — Estilos del popup de PartyHazz */
+
+/* --------------------------------------------------------------------------
+   Reset y base
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --color-fondo:       #0e0e12;
+  --color-superficie:  #16161e;
+  --color-borde:       rgba(255, 255, 255, 0.08);
+  --color-acento:      #ff7700;
+  --color-acento-glow: rgba(255, 119, 0, 0.25);
+  --color-texto:       #f0f0f5;
+  --color-texto-dim:   rgba(240, 240, 245, 0.5);
+  --color-ok:          #4ade80;
+  --color-peligro:     #f87171;
+  --color-warn:        #fbbf24;
+  --radio:             12px;
+  --radio-sm:          8px;
+  --sombra:            0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+html, body {
+  width: 320px;
+  min-height: 320px;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Vistas (show/hide)
+   -------------------------------------------------------------------------- */
+.vista {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  animation: ph-fade-in 0.25s ease;
+}
+
+.vista.activa {
+  display: flex;
+}
+
+@keyframes ph-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   Header
+   -------------------------------------------------------------------------- */
+.ph-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 4px;
+}
+
+.ph-header--sala {
+  padding-bottom: 0;
+}
+
+.ph-logo-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 0 8px var(--color-acento-glow));
+}
+
+.ph-titulo {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--color-texto);
+}
+
+.ph-accent {
+  color: var(--color-acento);
+}
+
+.ph-subtitulo {
+  font-size: 11px;
+  color: var(--color-texto-dim);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   Indicador del servidor
+   -------------------------------------------------------------------------- */
+.ph-servidor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radio-sm);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ph-servidor--conectado {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  color: var(--color-ok);
+}
+
+.ph-servidor--desconectado {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: var(--color-peligro);
+}
+
+.ph-servidor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ph-servidor--conectado .ph-servidor-dot {
+  background: var(--color-ok);
+  box-shadow: 0 0 6px var(--color-ok);
+  animation: ph-blink 2s ease-in-out infinite;
+}
+
+.ph-servidor--desconectado .ph-servidor-dot {
+  background: var(--color-peligro);
+}
+
+@keyframes ph-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* --------------------------------------------------------------------------
+   Acciones
+   -------------------------------------------------------------------------- */
+.ph-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ph-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: var(--radio);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
+}
+
+.ph-btn:active { transform: scale(0.97); }
+
+.ph-btn--primario {
+  background: linear-gradient(135deg, #ff7700, #ff4d00);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255, 119, 0, 0.35);
+}
+
+.ph-btn--primario:hover {
+  box-shadow: 0 6px 24px rgba(255, 119, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.ph-btn--secundario {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+}
+
+.ph-btn--secundario:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ph-btn--danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-peligro);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ph-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.ph-btn--ghost {
+  background: transparent;
+  color: var(--color-texto-dim);
+  border: 1px solid var(--color-borde);
+  padding: 7px 12px;
+  font-size: 12px;
+  width: auto;
+}
+
+.ph-btn--ghost:hover {
+  color: var(--color-texto);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.ph-btn-icon { font-size: 15px; }
+
+/* Divider */
+.ph-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-texto-dim);
+  font-size: 11px;
+}
+
+.ph-divider::before,
+.ph-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-borde);
+}
+
+/* Grupo input + boton */
+.ph-input-grupo {
+  display: flex;
+  gap: 8px;
+}
+
+.ph-input-grupo .ph-btn {
+  width: auto;
+  flex-shrink: 0;
+  padding: 11px 16px;
+}
+
+/* Input */
+.ph-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-sm);
+  color: var(--color-texto);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.ph-input--small {
+  font-size: 12px;
+  padding: 8px 10px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ph-input::placeholder {
+  color: rgba(240, 240, 245, 0.25);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ph-input:focus {
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 3px var(--color-acento-glow);
+}
+
+/* Mensajes de estado */
+.ph-msg-error {
+  font-size: 12px;
+  color: var(--color-peligro);
+  text-align: center;
+}
+
+.ph-msg-ok {
+  font-size: 12px;
+  color: var(--color-ok);
+  text-align: center;
+}
+
+.oculto { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   Config colapsable
+   -------------------------------------------------------------------------- */
+.ph-config {
+  border-top: 1px solid var(--color-borde);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.ph-config-summary {
+  font-size: 11px;
+  color: var(--color-texto-dim);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.ph-config-summary:hover { color: var(--color-texto); }
+
+.ph-config-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.ph-label {
+  font-size: 11px;
+  color: var(--color-texto-dim);
+}
+
+/* --------------------------------------------------------------------------
+   Vista: En sala — Room Card
+   -------------------------------------------------------------------------- */
+.ph-room-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: 16px;
+}
+
+.ph-room-label {
+  font-size: 11px;
+  color: var(--color-texto-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ph-room-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 2px dashed rgba(255, 119, 0, 0.4);
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  color: var(--color-acento);
+}
+
+.ph-room-id:hover {
+  border-color: var(--color-acento);
+  background: var(--color-acento-glow);
+}
+
+#texto-id-sala {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.ph-copy-icon { font-size: 16px; }
+
+/* --------------------------------------------------------------------------
+   Vista: En sala — Info
+   -------------------------------------------------------------------------- */
+.ph-sala-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: 12px 16px;
+}
+
+.ph-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.ph-info-label {
+  color: var(--color-texto-dim);
+}
+
+.ph-info-valor {
+  font-weight: 600;
+}
+
+.ph-badge-host {
+  color: var(--color-acento);
+}
+
+.ph-badge-viewer {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ph-sync-ok   { color: var(--color-ok); }
+.ph-sync-warn { color: var(--color-warn); }
+.ph-sync-err  { color: var(--color-peligro); }
+
+/* --------------------------------------------------------------------------
+   Vista: Cargando
+   -------------------------------------------------------------------------- */
+.ph-spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+}
+
+.ph-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255, 119, 0, 0.2);
+  border-top-color: var(--color-acento);
+  border-radius: 50%;
+  animation: ph-spin 0.8s linear infinite;
+}
+
+@keyframes ph-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ph-cargando-texto {
+  font-size: 13px;
+  color: var(--color-texto-dim);
+}

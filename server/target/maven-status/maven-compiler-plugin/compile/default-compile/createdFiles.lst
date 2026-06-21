@@ -1,0 +1,7 @@
+com/partyhazz/model/Participante.class
+com/partyhazz/util/ReconnectEntry.class
+com/partyhazz/model/Sala$EventoEnum.class
+com/partyhazz/MainVerticle.class
+com/partyhazz/MessageCtrl.class
+com/partyhazz/model/Sala.class
+com/partyhazz/SalaBs.class
