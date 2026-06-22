@@ -68,16 +68,25 @@ window.PartyHazz.controladorVideo = (() => {
   // Aplicar comandos externos (sin generar eventos de sync)
   // --------------------------------------------------------------------------
 
-  /**
-   * Aplica play en el tiempo indicado con compensacion de latencia ya incluida.
-   */
   function aplicarPlay(time) {
     if (!videoEl) return;
+    
+    // Evitar loop infinito: esperamos al evento real de play para soltar el flag
     esAccionSync = true;
-    videoEl.currentTime = time;
-    videoEl.play()
-      .catch((err) => console.warn('[PartyHazz] Error al aplicar play:', err))
-      .finally(() => { esAccionSync = false; });
+    const releaseFlag = () => { esAccionSync = false; };
+    videoEl.addEventListener('play', releaseFlag, { once: true });
+
+    // Solo mover el tiempo si hay un desfase real (>0.5s)
+    if (Math.abs(videoEl.currentTime - time) > 0.5) {
+      videoEl.currentTime = time;
+    }
+
+    videoEl.play().catch((err) => {
+      console.warn('[PartyHazz] Error al aplicar play:', err);
+      // Si falla (ej. por Autoplay), limpiamos el listener y el flag
+      videoEl.removeEventListener('play', releaseFlag);
+      esAccionSync = false;
+    });
   }
 
   /**
@@ -85,11 +94,19 @@ window.PartyHazz.controladorVideo = (() => {
    */
   function aplicarPausa(time) {
     if (!videoEl) return;
+    
     esAccionSync = true;
-    videoEl.currentTime = time;
+    const releaseFlag = () => { esAccionSync = false; };
+    videoEl.addEventListener('pause', releaseFlag, { once: true });
+
+    if (Math.abs(videoEl.currentTime - time) > 0.5) {
+      videoEl.currentTime = time;
+    }
+
     videoEl.pause();
-    // pause() es sincrono, reseteamos inmediatamente
-    esAccionSync = false;
+    
+    // Fallback de seguridad por si el pause falla o ya estaba pausado
+    setTimeout(() => { esAccionSync = false; }, 200);
   }
 
   /**
@@ -97,10 +114,18 @@ window.PartyHazz.controladorVideo = (() => {
    */
   function aplicarSeek(time) {
     if (!videoEl) return;
+    
+    // Si ya estamos en ese tiempo, ignorar para no trabar el reproductor
+    if (Math.abs(videoEl.currentTime - time) < 0.5) return;
+
     esAccionSync = true;
+    const releaseFlag = () => { esAccionSync = false; };
+    videoEl.addEventListener('seeked', releaseFlag, { once: true });
+    
     videoEl.currentTime = time;
-    // 'seeked' dispara cuando termina; reseteamos ahi
-    videoEl.addEventListener('seeked', () => { esAccionSync = false; }, { once: true });
+    
+    // Fallback de seguridad
+    setTimeout(() => { esAccionSync = false; }, 1000);
   }
 
   // --------------------------------------------------------------------------
