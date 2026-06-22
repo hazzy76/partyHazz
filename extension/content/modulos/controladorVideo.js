@@ -16,6 +16,7 @@ window.PartyHazz = window.PartyHazz || {};
 window.PartyHazz.controladorVideo = (() => {
   let videoEl = null;
   let esAccionSync = false;       // true = ignorar el proximo evento del video
+  let timerSyncLock = null;
   let callbackEvento = null;      // funcion a llamar cuando el usuario interactua
 
   // --------------------------------------------------------------------------
@@ -65,16 +66,25 @@ window.PartyHazz.controladorVideo = (() => {
   }
 
   // --------------------------------------------------------------------------
+  // Bloqueo de bucles infinitos
+  // --------------------------------------------------------------------------
+
+  function setSyncLock() {
+    esAccionSync = true;
+    if (timerSyncLock) clearTimeout(timerSyncLock);
+    // Liberamos el candado después de 500ms. Es más seguro que depender de 
+    // eventos del DOM que a veces no se disparan si el video ya estaba en ese estado.
+    timerSyncLock = setTimeout(() => { esAccionSync = false; }, 500);
+  }
+
+  // --------------------------------------------------------------------------
   // Aplicar comandos externos (sin generar eventos de sync)
   // --------------------------------------------------------------------------
 
   function aplicarPlay(time) {
     if (!videoEl) return;
     
-    // Evitar loop infinito: esperamos al evento real de play para soltar el flag
-    esAccionSync = true;
-    const releaseFlag = () => { esAccionSync = false; };
-    videoEl.addEventListener('play', releaseFlag, { once: true });
+    setSyncLock();
 
     // Solo mover el tiempo si hay un desfase real (>0.5s)
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
@@ -82,10 +92,9 @@ window.PartyHazz.controladorVideo = (() => {
     }
 
     videoEl.play().catch((err) => {
-      console.warn('[PartyHazz] Error al aplicar play:', err);
-      // Si falla (ej. por Autoplay), limpiamos el listener y el flag
-      videoEl.removeEventListener('play', releaseFlag);
-      esAccionSync = false;
+      console.warn('[PartyHazz] Error al aplicar play:', err.message || err);
+      // El error DOMException suele ser porque Chrome bloquea el Autoplay
+      // si el usuario no ha hecho clic en la página.
     });
   }
 
@@ -95,18 +104,13 @@ window.PartyHazz.controladorVideo = (() => {
   function aplicarPausa(time) {
     if (!videoEl) return;
     
-    esAccionSync = true;
-    const releaseFlag = () => { esAccionSync = false; };
-    videoEl.addEventListener('pause', releaseFlag, { once: true });
+    setSyncLock();
 
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       videoEl.currentTime = time;
     }
 
     videoEl.pause();
-    
-    // Fallback de seguridad por si el pause falla o ya estaba pausado
-    setTimeout(() => { esAccionSync = false; }, 200);
   }
 
   /**
@@ -118,14 +122,8 @@ window.PartyHazz.controladorVideo = (() => {
     // Si ya estamos en ese tiempo, ignorar para no trabar el reproductor
     if (Math.abs(videoEl.currentTime - time) < 0.5) return;
 
-    esAccionSync = true;
-    const releaseFlag = () => { esAccionSync = false; };
-    videoEl.addEventListener('seeked', releaseFlag, { once: true });
-    
+    setSyncLock();
     videoEl.currentTime = time;
-    
-    // Fallback de seguridad
-    setTimeout(() => { esAccionSync = false; }, 1000);
   }
 
   // --------------------------------------------------------------------------
