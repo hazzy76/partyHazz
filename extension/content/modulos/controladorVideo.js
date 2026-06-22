@@ -138,6 +138,11 @@ window.PartyHazz.controladorVideo = (() => {
     return videoEl ? !videoEl.paused && !videoEl.ended : false;
   }
 
+  function estaBuffereando() {
+    // readyState < 3 (HAVE_FUTURE_DATA) significa que no tiene datos suficientes para reproducir
+    return videoEl ? videoEl.readyState < 3 : false;
+  }
+
   return {
     iniciar,
     detener,
@@ -145,6 +150,7 @@ window.PartyHazz.controladorVideo = (() => {
     aplicarPausa,
     aplicarSeek,
     getTiempoActual,
-    estaReproduciendo
+    estaReproduciendo,
+    estaBuffereando
   };
 })();

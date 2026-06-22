@@ -189,6 +189,15 @@ window.PartyHazz.manejadorSync = (() => {
         const diferencia = Math.abs(tiempoLocal - tiempoEsperado);
 
         if (diferencia > TOLERANCIA_SYNC_SEG) {
+          // EVITAR EL BUCLE DE BUFFERING ABORTADO:
+          // Si nuestro reproductor está buffereando, NO le aplicamos el seek del SYNC_CHECK.
+          // Si lo hacemos, abortamos su descarga actual y lo mandamos a descargar 5 segundos 
+          // más adelante, atrapándolo en un bucle infinito de descargas abortadas.
+          if (ctrl.estaBuffereando && ctrl.estaBuffereando()) {
+            console.log(`[PartyHazz] Ignorando SYNC_CHECK porque estamos buffereando...`);
+            return;
+          }
+
           console.log(`[PartyHazz] Drift detectado: ${diferencia.toFixed(2)}s. Corrigiendo...`);
           ui.mostrarAjustando();
           ctrl.aplicarSeek(tiempoEsperado);
