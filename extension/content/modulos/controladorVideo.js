@@ -63,6 +63,17 @@ window.PartyHazz.controladorVideo = (() => {
       if (esAccionSync) return;
       callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
     });
+
+    // Cuando termine de descargar un pedazo y esté listo para reproducir
+    videoEl.addEventListener('canplay', () => {
+      if (esperandoParaReproducir) {
+        esperandoParaReproducir = false;
+        setSyncLock();
+        videoEl.play().catch(err => {
+           console.warn('[PartyHazz] Error al reproducir tras canplay:', err);
+        });
+      }
+    });
   }
 
   // --------------------------------------------------------------------------
@@ -90,9 +101,19 @@ window.PartyHazz.controladorVideo = (() => {
       videoEl.currentTime = time;
     }
 
-    videoEl.play().catch((err) => {
-      console.warn('[PartyHazz] Error al aplicar play:', err.message || err);
-    });
+    // Solución al AbortError: "The play() request was interrupted by a call to pause()"
+    // Si el video no tiene datos en este instante, y nosotros llamamos a play(), 
+    // Crunchyroll detectará la falta de datos y llamará a pause() para mostrar su spinner.
+    // Esto cancela nuestra promesa de play() y deja el reproductor pausado para siempre.
+    if (videoEl.readyState < 3) {
+      esperandoParaReproducir = true;
+      console.log('[PartyHazz] Esperando a que el video termine de bufferear para darle play...');
+    } else {
+      esperandoParaReproducir = false;
+      videoEl.play().catch((err) => {
+        console.warn('[PartyHazz] Error al aplicar play:', err.message || err);
+      });
+    }
   }
 
   /**
@@ -102,6 +123,7 @@ window.PartyHazz.controladorVideo = (() => {
     if (!videoEl) return;
 
     setSyncLock();
+    esperandoParaReproducir = false; // Cancelamos cualquier play() pendiente
 
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       videoEl.currentTime = time;
