@@ -257,6 +257,13 @@ window.PartyHazz.manejadorSync = (() => {
   function iniciarSyncCheck() {
     detenerSyncCheck();
     timerSync = setInterval(() => {
+      // REGLA DE ORO (Dictador de Sincronización): 
+      // SÓLO el Host puede enviar chequeos de sincronización periódicos.
+      // Si todos los clientes enviaran su tiempo, crearían un juego de la soga
+      // (Tug of War) donde los que cargan más lento arrastrarían a los rápidos 
+      // hacia el pasado infinitamente.
+      if (!estadoSala || !estadoSala.isHost) return;
+
       const ctrl = window.PartyHazz.controladorVideo;
       
       // Si nuestro reproductor está atascado buffereando, nuestro tiempo actual
