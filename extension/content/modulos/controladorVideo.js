@@ -48,12 +48,8 @@ window.PartyHazz.controladorVideo = (() => {
   // --------------------------------------------------------------------------
 
   function inyectarScriptReact() {
-    const scriptEl = document.createElement('script');
-    scriptEl.src = chrome.runtime.getURL('content/modulos/reactHack.js');
-    scriptEl.onload = function() {
-        this.remove();
-    };
-    (document.head || document.documentElement).appendChild(scriptEl);
+    // Ya no inyectamos el hack de React. Katamari bloquea eventos sintéticos no confiables.
+    // Usaremos el "Deadlock Breaker" nativo en su lugar.
   }
 
   // --------------------------------------------------------------------------
@@ -109,20 +105,35 @@ window.PartyHazz.controladorVideo = (() => {
   let tiempoDestino = null;
   let timerDestino = null;
 
+  function retrocesoSeguro(time) {
+    if (!videoEl) return;
+    
+    // Estrategia "Deadlock Breaker":
+    // Sabemos que setear currentTime hacia atrás congela a Bitmovin.
+    // Así que lo seteamos a time + 10 (lo cual lo congelará momentáneamente).
+    videoEl.currentTime = time + 10;
+    
+    // Inmediatamente después, pulsamos el botón oficial de Katamari de "Retroceder 10s".
+    // Katamari leerá el tiempo (que ahora es time + 10), restará 10, y mandará a
+    // llamar a la API oficial de Bitmovin. Esto ROMPE el deadlock y descarga el video perfecto.
+    const jumpBtn = document.querySelector('[data-testid="jump-backward-button"]');
+    if (jumpBtn) {
+      jumpBtn.click();
+    } else {
+      // Fallback si ocultan el botón: Flecha Izquierda hace exactamente lo mismo
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
+    }
+  }
+
   function moverTiempo(time) {
     if (!videoEl) return;
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
-      // Guardar el tiempo destino temporalmente.
-      // Como React actualiza el video de forma asíncrona, si alguien pregunta
-      // la hora (getTiempoActual) antes de que React termine, le mentiremos
-      // devolviendo este tiempoDestino. Esto evita la condición de carrera
-      // masiva que estaba mandando a los reproductores de regreso al pasado.
       tiempoDestino = time;
       if (timerDestino) clearTimeout(timerDestino);
-      timerDestino = setTimeout(() => { tiempoDestino = null; }, 3000); // 3s máximo de gracia
+      timerDestino = setTimeout(() => { tiempoDestino = null; }, 3000);
 
       if (time < videoEl.currentTime) {
-        document.dispatchEvent(new CustomEvent('PartyHazz_DoSeek', { detail: time }));
+        retrocesoSeguro(time);
       } else {
         videoEl.currentTime = time;
       }
