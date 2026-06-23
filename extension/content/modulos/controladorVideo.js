@@ -75,6 +75,18 @@ window.PartyHazz.controladorVideo = (() => {
       callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
     });
 
+    // Auto-Pausa al saltar: Si el usuario salta mientras el video está reproduciendo,
+    // forzamos una pausa. Esto enviará un evento PAUSA al otro cliente, asegurando
+    // que ambos se queden pausados en el nuevo punto hasta que el Host esté listo
+    // y vuelva a darle Play manualmente. (Igual que Netflix Party).
+    videoEl.addEventListener('seeking', () => {
+      if (esAccionSync) return;
+      if (!videoEl.paused) {
+         console.log('[PartyHazz] Salto detectado durante reproducción. Forzando Auto-Pausa.');
+         videoEl.pause();
+      }
+    });
+
     // Escudo protector contra el AbortError de React
     videoEl.addEventListener('canplay', () => {
       if (esperandoParaReproducir) {
