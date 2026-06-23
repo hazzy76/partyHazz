@@ -106,11 +106,21 @@ window.PartyHazz.controladorVideo = (() => {
   // Aplicar comandos externos (sin generar eventos de sync)
   // --------------------------------------------------------------------------
 
-  // Helper Híbrido: Hacia adelante usamos nativo (rápido, no desincroniza), 
-  // Hacia atrás usamos el hack de React para evitar que Bitmovin se congele.
+  let tiempoDestino = null;
+  let timerDestino = null;
+
   function moverTiempo(time) {
     if (!videoEl) return;
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
+      // Guardar el tiempo destino temporalmente.
+      // Como React actualiza el video de forma asíncrona, si alguien pregunta
+      // la hora (getTiempoActual) antes de que React termine, le mentiremos
+      // devolviendo este tiempoDestino. Esto evita la condición de carrera
+      // masiva que estaba mandando a los reproductores de regreso al pasado.
+      tiempoDestino = time;
+      if (timerDestino) clearTimeout(timerDestino);
+      timerDestino = setTimeout(() => { tiempoDestino = null; }, 3000); // 3s máximo de gracia
+
       if (time < videoEl.currentTime) {
         document.dispatchEvent(new CustomEvent('PartyHazz_DoSeek', { detail: time }));
       } else {
@@ -152,7 +162,20 @@ window.PartyHazz.controladorVideo = (() => {
   // --------------------------------------------------------------------------
 
   function getTiempoActual() {
-    return videoEl ? videoEl.currentTime : 0;
+    if (!videoEl) return 0;
+    
+    // Si estamos en la ventana asíncrona de React, devolver el tiempo falso
+    if (tiempoDestino !== null) {
+      if (Math.abs(videoEl.currentTime - tiempoDestino) < 1) {
+         // Ya llegamos a la meta, limpiar
+         tiempoDestino = null;
+         if (timerDestino) clearTimeout(timerDestino);
+      } else {
+         return tiempoDestino;
+      }
+    }
+    
+    return videoEl.currentTime;
   }
 
   function estaReproduciendo() {
