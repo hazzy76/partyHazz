@@ -18,7 +18,7 @@ window.PartyHazz.controladorVideo = (() => {
   let esAccionSync = false;       // true = ignorar el proximo evento del video
   let timerSyncLock = null;
   let callbackEvento = null;      // funcion a llamar cuando el usuario interactua
-  let esperandoParaReproducir = false; // true si estamos esperando a que termine de bufferear
+  let esperandoParaReproducir = false;
 
   // --------------------------------------------------------------------------
   // Inicializacion
@@ -46,7 +46,7 @@ window.PartyHazz.controladorVideo = (() => {
   // --------------------------------------------------------------------------
   // Hack de React Fiber (Ejecutado en el contexto de la página principal)
   // --------------------------------------------------------------------------
-  
+
   function inyectarScriptReact() {
     const mainScript = `
       document.addEventListener('PartyHazz_DoSeek', (e) => {
@@ -110,14 +110,13 @@ window.PartyHazz.controladorVideo = (() => {
       callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
     });
 
-    // Cuando termine de descargar un pedazo y esté listo para reproducir
+    // Escudo protector contra el AbortError de React
     videoEl.addEventListener('canplay', () => {
       if (esperandoParaReproducir) {
+        console.log('[PartyHazz] Video buffereado. Disparando Play pendiente.');
         esperandoParaReproducir = false;
         setSyncLock();
-        videoEl.play().catch(err => {
-          console.warn('[PartyHazz] Error al reproducir tras canplay:', err);
-        });
+        videoEl.play().catch(err => console.warn('[PartyHazz] Play falló en canplay:', err));
       }
     });
   }
@@ -138,59 +137,45 @@ window.PartyHazz.controladorVideo = (() => {
   // Aplicar comandos externos (sin generar eventos de sync)
   // --------------------------------------------------------------------------
 
-  function aplicarPlay(time) {
+  // Helper Híbrido: Hacia adelante usamos nativo (rápido, no desincroniza), 
+  // Hacia atrás usamos el hack de React para evitar que Bitmovin se congele.
+  function moverTiempo(time) {
     if (!videoEl) return;
-
-    setSyncLock();
-
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
-      videoEl.currentTime = time;
-    }
-
-    // Solución al AbortError: "The play() request was interrupted by a call to pause()"
-    // Si el video no tiene datos en este instante, y nosotros llamamos a play(), 
-    // Crunchyroll detectará la falta de datos y llamará a pause() para mostrar su spinner.
-    // Esto cancela nuestra promesa de play() y deja el reproductor pausado para siempre.
-    if (videoEl.readyState < 3) {
-      esperandoParaReproducir = true;
-      console.log('[PartyHazz] Esperando a que el video termine de bufferear para darle play...');
-    } else {
-      esperandoParaReproducir = false;
-      videoEl.play().catch((err) => {
-        console.warn('[PartyHazz] Error al aplicar play:', err.message || err);
-      });
+      if (time < videoEl.currentTime) {
+        document.dispatchEvent(new CustomEvent('PartyHazz_DoSeek', { detail: time }));
+      } else {
+        videoEl.currentTime = time;
+      }
     }
   }
 
-  /**
-   * Aplica pausa en el tiempo indicado.
-   */
+  function aplicarPlay(time) {
+    if (!videoEl) return;
+    setSyncLock();
+    moverTiempo(time);
+
+    if (videoEl.readyState < 3) {
+      esperandoParaReproducir = true;
+      console.log('[PartyHazz] Esperando buffering antes de dar Play...');
+    } else {
+      esperandoParaReproducir = false;
+      videoEl.play().catch(err => console.warn('[PartyHazz] Play falló:', err));
+    }
+  }
+
   function aplicarPausa(time) {
     if (!videoEl) return;
-
     setSyncLock();
-    esperandoParaReproducir = false; // Cancelamos cualquier play() pendiente
-
-    if (Math.abs(videoEl.currentTime - time) > 0.5) {
-      videoEl.currentTime = time;
-    }
-
+    esperandoParaReproducir = false;
+    moverTiempo(time);
     videoEl.pause();
   }
 
-  /**
-   * Aplica seek sin cambiar estado de reproduccion.
-   */
   function aplicarSeek(time) {
     if (!videoEl) return;
-
-    if (Math.abs(videoEl.currentTime - time) < 0.5) return;
-
     setSyncLock();
-    
-    // Le enviamos la orden al script inyectado en el contexto de la página principal
-    // para que invoque directamente la función interna de React (Katamari UI).
-    document.dispatchEvent(new CustomEvent('PartyHazz_DoSeek', { detail: time }));
+    moverTiempo(time);
   }
 
   // --------------------------------------------------------------------------
