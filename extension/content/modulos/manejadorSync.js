@@ -258,6 +258,14 @@ window.PartyHazz.manejadorSync = (() => {
     detenerSyncCheck();
     timerSync = setInterval(() => {
       const ctrl = window.PartyHazz.controladorVideo;
+      
+      // Si nuestro reproductor está atascado buffereando, nuestro tiempo actual
+      // es falso o está congelado. NO debemos mandarlo al servidor porque
+      // arrastraríamos a los demás hacia atrás por error.
+      if (ctrl.estaBuffereando && ctrl.estaBuffereando()) {
+        return;
+      }
+
       enviar({
         type: 'SYNC_CHECK',
         time: ctrl.getTiempoActual(),

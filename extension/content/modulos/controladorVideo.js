@@ -83,22 +83,16 @@ window.PartyHazz.controladorVideo = (() => {
 
   function aplicarPlay(time) {
     if (!videoEl) return;
-    
+
     setSyncLock();
 
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       videoEl.currentTime = time;
-      // Despertar a los listeners de Crunchyroll
-      videoEl.dispatchEvent(new Event('timeupdate', { bubbles: true }));
-      videoEl.dispatchEvent(new Event('seeking', { bubbles: true }));
     }
 
-    // Le damos un respiro de 50ms para que Crunchyroll procese el salto antes de darle play
-    setTimeout(() => {
-      videoEl.play().catch((err) => {
-        console.warn('[PartyHazz] Error al aplicar play:', err.message || err);
-      });
-    }, 50);
+    videoEl.play().catch((err) => {
+      console.warn('[PartyHazz] Error al aplicar play:', err.message || err);
+    });
   }
 
   /**
@@ -106,13 +100,11 @@ window.PartyHazz.controladorVideo = (() => {
    */
   function aplicarPausa(time) {
     if (!videoEl) return;
-    
+
     setSyncLock();
 
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       videoEl.currentTime = time;
-      videoEl.dispatchEvent(new Event('timeupdate', { bubbles: true }));
-      videoEl.dispatchEvent(new Event('seeking', { bubbles: true }));
     }
 
     videoEl.pause();
@@ -123,29 +115,25 @@ window.PartyHazz.controladorVideo = (() => {
    */
   function aplicarSeek(time) {
     if (!videoEl) return;
-    
+
     if (Math.abs(videoEl.currentTime - time) < 0.5) return;
 
     setSyncLock();
-    
-    // TRUCO SUCIO PARA MSE: Si estaba reproduciendo, lo pausamos un milisegundo.
-    // Esto obliga al player custom a detener su motor interno y repensar la jugada.
-    const estabaReproduciendo = !videoEl.paused && !videoEl.ended;
-    if (estabaReproduciendo) {
-      videoEl.pause();
-    }
-    
-    videoEl.currentTime = time;
-    
-    // Despertamos al Javascript de Crunchyroll a la fuerza gritándole que el tiempo cambió
-    videoEl.dispatchEvent(new Event('timeupdate', { bubbles: true }));
-    videoEl.dispatchEvent(new Event('seeking', { bubbles: true }));
 
-    // Si estaba reproduciendo, se lo devolvemos a Play después de un instante
-    if (estabaReproduciendo) {
-      setTimeout(() => {
-        videoEl.play().catch(() => {});
-      }, 50);
+    // 1. Buscamos la barra de progreso de React (Katamari UI)
+    const slider = document.querySelector('.timeline-slider');
+
+    if (slider) {
+      // Tenemos que usar el setter nativo del navegador para engañar al tracker de React.
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+      nativeInputValueSetter.call(slider, time);
+
+      // Disparamos los eventos que React está escuchando
+      slider.dispatchEvent(new Event('input', { bubbles: true }));
+      slider.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      // Fallback por si la interfaz cambia en el futuro
+      videoEl.currentTime = time;
     }
   }
 
