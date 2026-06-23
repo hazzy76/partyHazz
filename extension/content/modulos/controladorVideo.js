@@ -18,6 +18,7 @@ window.PartyHazz.controladorVideo = (() => {
   let esAccionSync = false;       // true = ignorar el proximo evento del video
   let timerSyncLock = null;
   let callbackEvento = null;      // funcion a llamar cuando el usuario interactua
+  let esperandoParaReproducir = false; // true si estamos esperando a que termine de bufferear
 
   // --------------------------------------------------------------------------
   // Inicializacion
@@ -70,7 +71,7 @@ window.PartyHazz.controladorVideo = (() => {
         esperandoParaReproducir = false;
         setSyncLock();
         videoEl.play().catch(err => {
-           console.warn('[PartyHazz] Error al reproducir tras canplay:', err);
+          console.warn('[PartyHazz] Error al reproducir tras canplay:', err);
         });
       }
     });
