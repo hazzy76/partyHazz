@@ -108,21 +108,33 @@ window.PartyHazz.controladorVideo = (() => {
   function retrocesoSeguro(time) {
     if (!videoEl) return;
     
-    // Estrategia "Deadlock Breaker":
-    // Sabemos que setear currentTime hacia atrás congela a Bitmovin.
-    // Así que lo seteamos a time + 10 (lo cual lo congelará momentáneamente).
-    videoEl.currentTime = time + 10;
+    const diff = videoEl.currentTime - time;
+    if (diff <= 0) return;
     
-    // Inmediatamente después, pulsamos el botón oficial de Katamari de "Retroceder 10s".
-    // Katamari leerá el tiempo (que ahora es time + 10), restará 10, y mandará a
-    // llamar a la API oficial de Bitmovin. Esto ROMPE el deadlock y descarga el video perfecto.
+    // Katamari usa su estado interno para retroceder. No nos deja engañarlo.
+    // Así que calculamos cuántos saltos de 10s necesitamos para llegar (o pasarnos un poco).
+    const clicks = Math.ceil(diff / 10);
     const jumpBtn = document.querySelector('[data-testid="jump-backward-button"]');
+    
     if (jumpBtn) {
-      jumpBtn.click();
+      for(let i = 0; i < clicks; i++) {
+         jumpBtn.click();
+      }
     } else {
-      // Fallback si ocultan el botón: Flecha Izquierda hace exactamente lo mismo
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
+      for(let i = 0; i < clicks; i++) {
+         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
+      }
     }
+    
+    // Una vez que Katamari procese la ráfaga de clics, habremos retrocedido seguro.
+    // Estaremos en un tiempo <= time.
+    // Como los saltos nativos hacia ADELANTE funcionan perfectamente sin congelar a Bitmovin,
+    // usamos un pequeño retardo y ajustamos los segundos finos hacia adelante.
+    setTimeout(() => {
+       if (videoEl && videoEl.currentTime < time) {
+          videoEl.currentTime = time;
+       }
+    }, 150);
   }
 
   function moverTiempo(time) {
