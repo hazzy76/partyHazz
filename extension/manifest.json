@@ -40,6 +40,12 @@
     "storage",
     "tabs"
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content/modulos/reactHack.js"],
+      "matches": ["*://*.crunchyroll.com/*"]
+    }
+  ],
   "host_permissions": [
     "*://*.crunchyroll.com/*",
     "ws://*/*",

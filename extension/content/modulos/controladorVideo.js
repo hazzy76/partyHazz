@@ -48,43 +48,12 @@ window.PartyHazz.controladorVideo = (() => {
   // --------------------------------------------------------------------------
 
   function inyectarScriptReact() {
-    const mainScript = `
-      document.addEventListener('PartyHazz_DoSeek', (e) => {
-        const time = e.detail;
-        const slider = document.querySelector('.timeline-slider');
-        let reactTriggereado = false;
-        
-        if (slider) {
-          // Buscamos la propiedad interna de React 16+ en el elemento DOM
-          const propsKey = Object.keys(slider).find(key => key.startsWith('__reactProps$'));
-          if (propsKey) {
-            const props = slider[propsKey];
-            if (props) {
-              // Simulamos el evento exacto que React espera de su slider
-              const fakeEvent = {
-                target: { value: time },
-                currentTarget: { value: time },
-                preventDefault: () => {},
-                stopPropagation: () => {}
-              };
-              
-              if (props.onChange) { props.onChange(fakeEvent); reactTriggereado = true; }
-              else if (props.onInput) { props.onInput(fakeEvent); reactTriggereado = true; }
-            }
-          }
-        }
-        
-        // Si no pudimos hackear a React, caemos al método nativo (que sabemos que se congela hacia atrás)
-        if (!reactTriggereado) {
-          const v = document.querySelector('video');
-          if (v) v.currentTime = time;
-        }
-      });
-    `;
     const scriptEl = document.createElement('script');
-    scriptEl.textContent = mainScript;
+    scriptEl.src = chrome.runtime.getURL('content/modulos/reactHack.js');
+    scriptEl.onload = function() {
+        this.remove();
+    };
     (document.head || document.documentElement).appendChild(scriptEl);
-    scriptEl.remove();
   }
 
   // --------------------------------------------------------------------------
