@@ -119,37 +119,7 @@ window.PartyHazz.controladorVideo = (() => {
     if (Math.abs(videoEl.currentTime - time) < 0.5) return;
 
     setSyncLock();
-
-    // Intentar simular un clic físico en la barra de progreso (Katamari UI)
-    const slider = document.querySelector('.timeline-slider');
-
-    if (slider && videoEl.duration) {
-      const rect = slider.getBoundingClientRect();
-      const porcentaje = time / videoEl.duration;
-      const clicX = rect.left + (rect.width * porcentaje);
-      const clicY = rect.top + (rect.height / 2);
-
-      const evtPointer = new PointerEvent('pointerdown', {
-        view: window, bubbles: true, cancelable: true,
-        clientX: clicX, clientY: clicY
-      });
-      const evtClick = new MouseEvent('click', {
-        view: window, bubbles: true, cancelable: true,
-        clientX: clicX, clientY: clicY
-      });
-
-      slider.dispatchEvent(evtPointer);
-      slider.dispatchEvent(evtClick);
-
-      // Verificamos en 200ms si React hizo caso. Si le valió madres, usamos la forma nativa.
-      setTimeout(() => {
-        if (Math.abs(videoEl.currentTime - time) > 1) {
-          videoEl.currentTime = time;
-        }
-      }, 200);
-    } else {
-      videoEl.currentTime = time;
-    }
+    videoEl.currentTime = time;
   }
 
   // --------------------------------------------------------------------------
