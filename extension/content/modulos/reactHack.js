@@ -18,6 +18,9 @@
           stopPropagation: () => {} 
         };
         
+        console.log('[PartyHazz-ReactHack] Propiedades de React disponibles en el slider:', Object.keys(props));
+        
+        // Fase 1: Actualizar el valor visual (Scrub)
         if (props.onChange) { 
           props.onChange(fakeEvent); 
           reactTriggereado = true; 
@@ -28,9 +31,13 @@
           console.log('[PartyHazz-ReactHack] onInput disparado'); 
         }
         
-        if (props.onPointerUp) { 
-          props.onPointerUp(fakeEvent); 
-          console.log('[PartyHazz-ReactHack] onPointerUp disparado'); 
+        // Fase 2: Confirmar el salto (Commit)
+        const eventosCommit = ['onChangeCommitted', 'onMouseUp', 'onPointerUp', 'onTouchEnd', 'onSeek', 'onSlidingComplete', 'onDragEnd'];
+        for (let evtName of eventosCommit) {
+           if (props[evtName]) {
+              console.log('[PartyHazz-ReactHack] Disparando evento de confirmación:', evtName);
+              props[evtName](fakeEvent);
+           }
         }
       } else {
         console.warn('[PartyHazz-ReactHack] No se encontró __reactProps$ en el slider');
