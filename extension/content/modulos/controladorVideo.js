@@ -93,9 +93,13 @@ window.PartyHazz.controladorVideo = (() => {
   function setSyncLock() {
     esAccionSync = true;
     if (timerSyncLock) clearTimeout(timerSyncLock);
-    // Liberamos el candado después de 500ms. Es más seguro que depender de 
-    // eventos del DOM que a veces no se disparan si el video ya estaba en ese estado.
-    timerSyncLock = setTimeout(() => { esAccionSync = false; }, 500);
+    // Aumentamos a 3000ms.
+    // La nueva lógica saltoSeguro() tarda unos 450ms en terminar sus setTimeout.
+    // Sumando el tiempo que tarda Bitmovin en descargar el video, el evento nativo
+    // 'seeked' puede dispararse 1 o 2 segundos después. Si el candado se libera antes,
+    // la extensión cree que fue un salto manual y retransmite el evento al otro cliente,
+    // causando el famoso bucle infinito. 3 segundos es un margen perfecto.
+    timerSyncLock = setTimeout(() => { esAccionSync = false; }, 3000);
   }
 
   // --------------------------------------------------------------------------
