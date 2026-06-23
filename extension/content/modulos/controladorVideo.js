@@ -105,6 +105,55 @@ window.PartyHazz.controladorVideo = (() => {
   let tiempoDestino = null;
   let timerDestino = null;
 
+  // Estrategia final para domar a Katamari/Bitmovin sin crashear su estado de React
+  function saltoSeguro(time) {
+    if (!videoEl) return;
+    
+    const haciaAdelante = time > videoEl.currentTime;
+
+    // Calculamos un "Fake Time" a 10 segundos de distancia de nuestro destino.
+    // Usaremos los botones oficiales de 10s para recorrer ese último tramo
+    // y obligar a Bitmovin a descargar el video oficialmente.
+    let fakeTime = haciaAdelante ? (time - 10) : (time + 10);
+    
+    // Si vamos hacia adelante a un tiempo muy bajito (ej. seg 5), el fakeTime sería negativo.
+    // En ese caso, mejor lo mandamos 10s adelante y usamos el botón de retroceso.
+    if (haciaAdelante && fakeTime < 0) {
+       fakeTime = time + 10;
+    }
+
+    // 1. Engañamos a Bitmovin poniéndolo a 10s del destino (se congelará)
+    videoEl.currentTime = fakeTime;
+    
+    // 2. MAGIA: Le disparamos un evento nativo para obligar al React interno de 
+    // Katamari a actualizar su reloj y creer que de verdad estamos en fakeTime.
+    videoEl.dispatchEvent(new Event('timeupdate'));
+    
+    // 3. Le damos tiempo a React de procesar el evento (150ms) y luego...
+    setTimeout(() => {
+       if (!videoEl) return;
+       // ...pulsamos el botón oficial para romper el hielo. Un solo clic perfecto.
+       if (videoEl.currentTime < time) {
+          const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
+          if (btnFwd) btnFwd.click();
+          else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, bubbles: true }));
+       } else {
+          const btnBck = document.querySelector('[data-testid="jump-backward-button"]');
+          if (btnBck) btnBck.click();
+          else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
+       }
+       
+       // Un micro-ajuste ultra fino final hacia ADELANTE 
+       // (los micro-saltos hacia adelante casi nunca congelan Bitmovin)
+       setTimeout(() => {
+          if (videoEl && videoEl.currentTime < time && Math.abs(videoEl.currentTime - time) > 1) {
+             videoEl.currentTime = time;
+          }
+       }, 300);
+       
+    }, 150);
+  }
+
   function moverTiempo(time) {
     if (!videoEl) return;
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
@@ -112,25 +161,7 @@ window.PartyHazz.controladorVideo = (() => {
       if (timerDestino) clearTimeout(timerDestino);
       timerDestino = setTimeout(() => { tiempoDestino = null; }, 3000);
 
-      const estabaReproduciendo = !videoEl.paused;
-      
-      // 1. Forzamos el salto en el reloj nativo
-      videoEl.currentTime = time;
-      
-      // 2. Truco de Descongelamiento (Unfreeze Trick):
-      // Como descubriste, al saltar muy lejos (hacia adelante o atrás), Bitmovin 
-      // entra en coma (deadlock) porque no sabe que tiene que descargar el nuevo pedazo.
-      // Pero si pausamos y le damos play inmediatamente, Bitmovin "despierta", 
-      // revisa su reloj, ve que no tiene el pedazo y lo descarga correctamente.
-      if (estabaReproduciendo) {
-         videoEl.pause();
-         // Le damos 50ms al reproductor para procesar la pausa, y luego lo obligamos a arrancar
-         setTimeout(() => {
-            if (videoEl) {
-               videoEl.play().catch(e => console.warn('[PartyHazz] Unfreeze play falló:', e));
-            }
-         }, 50);
-      }
+      saltoSeguro(time);
     }
   }
 
