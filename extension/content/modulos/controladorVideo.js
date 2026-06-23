@@ -120,19 +120,34 @@ window.PartyHazz.controladorVideo = (() => {
 
     setSyncLock();
 
-    // 1. Buscamos la barra de progreso de React (Katamari UI)
+    // Intentar simular un clic físico en la barra de progreso (Katamari UI)
     const slider = document.querySelector('.timeline-slider');
 
-    if (slider) {
-      // Tenemos que usar el setter nativo del navegador para engañar al tracker de React.
-      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-      nativeInputValueSetter.call(slider, time);
+    if (slider && videoEl.duration) {
+      const rect = slider.getBoundingClientRect();
+      const porcentaje = time / videoEl.duration;
+      const clicX = rect.left + (rect.width * porcentaje);
+      const clicY = rect.top + (rect.height / 2);
 
-      // Disparamos los eventos que React está escuchando
-      slider.dispatchEvent(new Event('input', { bubbles: true }));
-      slider.dispatchEvent(new Event('change', { bubbles: true }));
+      const evtPointer = new PointerEvent('pointerdown', {
+        view: window, bubbles: true, cancelable: true,
+        clientX: clicX, clientY: clicY
+      });
+      const evtClick = new MouseEvent('click', {
+        view: window, bubbles: true, cancelable: true,
+        clientX: clicX, clientY: clicY
+      });
+
+      slider.dispatchEvent(evtPointer);
+      slider.dispatchEvent(evtClick);
+
+      // Verificamos en 200ms si React hizo caso. Si le valió madres, usamos la forma nativa.
+      setTimeout(() => {
+        if (Math.abs(videoEl.currentTime - time) > 1) {
+          videoEl.currentTime = time;
+        }
+      }, 200);
     } else {
-      // Fallback por si la interfaz cambia en el futuro
       videoEl.currentTime = time;
     }
   }
