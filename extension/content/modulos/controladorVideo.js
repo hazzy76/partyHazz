@@ -34,12 +34,57 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl = video;
     callbackEvento = onEventoUsuario;
     registrarEventos();
+    inyectarScriptReact();
     console.log('[PartyHazz] ControladorVideo iniciado');
   }
 
   function detener() {
     videoEl = null;
     callbackEvento = null;
+  }
+
+  // --------------------------------------------------------------------------
+  // Hack de React Fiber (Ejecutado en el contexto de la página principal)
+  // --------------------------------------------------------------------------
+  
+  function inyectarScriptReact() {
+    const mainScript = `
+      document.addEventListener('PartyHazz_DoSeek', (e) => {
+        const time = e.detail;
+        const slider = document.querySelector('.timeline-slider');
+        let reactTriggereado = false;
+        
+        if (slider) {
+          // Buscamos la propiedad interna de React 16+ en el elemento DOM
+          const propsKey = Object.keys(slider).find(key => key.startsWith('__reactProps$'));
+          if (propsKey) {
+            const props = slider[propsKey];
+            if (props) {
+              // Simulamos el evento exacto que React espera de su slider
+              const fakeEvent = {
+                target: { value: time },
+                currentTarget: { value: time },
+                preventDefault: () => {},
+                stopPropagation: () => {}
+              };
+              
+              if (props.onChange) { props.onChange(fakeEvent); reactTriggereado = true; }
+              else if (props.onInput) { props.onInput(fakeEvent); reactTriggereado = true; }
+            }
+          }
+        }
+        
+        // Si no pudimos hackear a React, caemos al método nativo (que sabemos que se congela hacia atrás)
+        if (!reactTriggereado) {
+          const v = document.querySelector('video');
+          if (v) v.currentTime = time;
+        }
+      });
+    `;
+    const scriptEl = document.createElement('script');
+    scriptEl.textContent = mainScript;
+    (document.head || document.documentElement).appendChild(scriptEl);
+    scriptEl.remove();
   }
 
   // --------------------------------------------------------------------------
@@ -142,7 +187,10 @@ window.PartyHazz.controladorVideo = (() => {
     if (Math.abs(videoEl.currentTime - time) < 0.5) return;
 
     setSyncLock();
-    videoEl.currentTime = time;
+    
+    // Le enviamos la orden al script inyectado en el contexto de la página principal
+    // para que invoque directamente la función interna de React (Katamari UI).
+    document.dispatchEvent(new CustomEvent('PartyHazz_DoSeek', { detail: time }));
   }
 
   // --------------------------------------------------------------------------
