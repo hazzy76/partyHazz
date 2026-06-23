@@ -86,16 +86,19 @@ window.PartyHazz.controladorVideo = (() => {
     
     setSyncLock();
 
-    // Solo mover el tiempo si hay un desfase real (>0.5s)
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       videoEl.currentTime = time;
+      // Despertar a los listeners de Crunchyroll
+      videoEl.dispatchEvent(new Event('timeupdate', { bubbles: true }));
+      videoEl.dispatchEvent(new Event('seeking', { bubbles: true }));
     }
 
-    videoEl.play().catch((err) => {
-      console.warn('[PartyHazz] Error al aplicar play:', err.message || err);
-      // El error DOMException suele ser porque Chrome bloquea el Autoplay
-      // si el usuario no ha hecho clic en la página.
-    });
+    // Le damos un respiro de 50ms para que Crunchyroll procese el salto antes de darle play
+    setTimeout(() => {
+      videoEl.play().catch((err) => {
+        console.warn('[PartyHazz] Error al aplicar play:', err.message || err);
+      });
+    }, 50);
   }
 
   /**
@@ -108,6 +111,8 @@ window.PartyHazz.controladorVideo = (() => {
 
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       videoEl.currentTime = time;
+      videoEl.dispatchEvent(new Event('timeupdate', { bubbles: true }));
+      videoEl.dispatchEvent(new Event('seeking', { bubbles: true }));
     }
 
     videoEl.pause();
@@ -119,11 +124,29 @@ window.PartyHazz.controladorVideo = (() => {
   function aplicarSeek(time) {
     if (!videoEl) return;
     
-    // Si ya estamos en ese tiempo, ignorar para no trabar el reproductor
     if (Math.abs(videoEl.currentTime - time) < 0.5) return;
 
     setSyncLock();
+    
+    // TRUCO SUCIO PARA MSE: Si estaba reproduciendo, lo pausamos un milisegundo.
+    // Esto obliga al player custom a detener su motor interno y repensar la jugada.
+    const estabaReproduciendo = !videoEl.paused && !videoEl.ended;
+    if (estabaReproduciendo) {
+      videoEl.pause();
+    }
+    
     videoEl.currentTime = time;
+    
+    // Despertamos al Javascript de Crunchyroll a la fuerza gritándole que el tiempo cambió
+    videoEl.dispatchEvent(new Event('timeupdate', { bubbles: true }));
+    videoEl.dispatchEvent(new Event('seeking', { bubbles: true }));
+
+    // Si estaba reproduciendo, se lo devolvemos a Play después de un instante
+    if (estabaReproduciendo) {
+      setTimeout(() => {
+        videoEl.play().catch(() => {});
+      }, 50);
+    }
   }
 
   // --------------------------------------------------------------------------
