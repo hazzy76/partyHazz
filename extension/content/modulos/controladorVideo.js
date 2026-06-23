@@ -105,38 +105,6 @@ window.PartyHazz.controladorVideo = (() => {
   let tiempoDestino = null;
   let timerDestino = null;
 
-  function retrocesoSeguro(time) {
-    if (!videoEl) return;
-    
-    const diff = videoEl.currentTime - time;
-    if (diff <= 0) return;
-    
-    // Katamari usa su estado interno para retroceder. No nos deja engañarlo.
-    // Así que calculamos cuántos saltos de 10s necesitamos para llegar (o pasarnos un poco).
-    const clicks = Math.ceil(diff / 10);
-    const jumpBtn = document.querySelector('[data-testid="jump-backward-button"]');
-    
-    if (jumpBtn) {
-      for(let i = 0; i < clicks; i++) {
-         jumpBtn.click();
-      }
-    } else {
-      for(let i = 0; i < clicks; i++) {
-         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
-      }
-    }
-    
-    // Una vez que Katamari procese la ráfaga de clics, habremos retrocedido seguro.
-    // Estaremos en un tiempo <= time.
-    // Como los saltos nativos hacia ADELANTE funcionan perfectamente sin congelar a Bitmovin,
-    // usamos un pequeño retardo y ajustamos los segundos finos hacia adelante.
-    setTimeout(() => {
-       if (videoEl && videoEl.currentTime < time) {
-          videoEl.currentTime = time;
-       }
-    }, 150);
-  }
-
   function moverTiempo(time) {
     if (!videoEl) return;
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
@@ -144,10 +112,24 @@ window.PartyHazz.controladorVideo = (() => {
       if (timerDestino) clearTimeout(timerDestino);
       timerDestino = setTimeout(() => { tiempoDestino = null; }, 3000);
 
-      if (time < videoEl.currentTime) {
-        retrocesoSeguro(time);
-      } else {
-        videoEl.currentTime = time;
+      const estabaReproduciendo = !videoEl.paused;
+      
+      // 1. Forzamos el salto en el reloj nativo
+      videoEl.currentTime = time;
+      
+      // 2. Truco de Descongelamiento (Unfreeze Trick):
+      // Como descubriste, al saltar muy lejos (hacia adelante o atrás), Bitmovin 
+      // entra en coma (deadlock) porque no sabe que tiene que descargar el nuevo pedazo.
+      // Pero si pausamos y le damos play inmediatamente, Bitmovin "despierta", 
+      // revisa su reloj, ve que no tiene el pedazo y lo descarga correctamente.
+      if (estabaReproduciendo) {
+         videoEl.pause();
+         // Le damos 50ms al reproductor para procesar la pausa, y luego lo obligamos a arrancar
+         setTimeout(() => {
+            if (videoEl) {
+               videoEl.play().catch(e => console.warn('[PartyHazz] Unfreeze play falló:', e));
+            }
+         }, 50);
       }
     }
   }
