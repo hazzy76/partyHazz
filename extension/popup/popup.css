@@ -71,7 +71,9 @@ html, body {
 }
 
 .ph-logo-icon {
-  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
   filter: drop-shadow(0 0 8px var(--color-acento-glow));
 }
 
