@@ -17,7 +17,6 @@ window.PartyHazz.controladorVideo = (() => {
   let videoEl = null;
   let esAccionSync = false;       // true = ignorar el proximo evento del video
   let timerSyncLock = null;
-  let timerDebounceSeek = null;   // Evita envios multiples al arrastrar la barra
   let callbackEvento = null;      // funcion a llamar cuando el usuario interactua
   let esperandoParaReproducir = false;
   let tiempoDestino = null;
@@ -79,14 +78,7 @@ window.PartyHazz.controladorVideo = (() => {
         return;
       }
       if (esAccionSync) return;
-
-      // DEBOUNCE (Filtro Anti-Eco): 
-      // Si el Host arrastra la barra, puede disparar múltiples 'seeked' en milisegundos.
-      // Esperamos 200ms sin nuevos saltos para confirmar el destino final y mandar 1 solo mensaje.
-      if (timerDebounceSeek) clearTimeout(timerDebounceSeek);
-      timerDebounceSeek = setTimeout(() => {
-        callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
-      }, 200);
+      callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
     });
 
     // Auto-Pausa al saltar: Si el usuario salta mientras el video está reproduciendo,
@@ -131,8 +123,13 @@ window.PartyHazz.controladorVideo = (() => {
   // Aplicar comandos externos (sin generar eventos de sync)
   // --------------------------------------------------------------------------
 
+  let tokenSalto = 0;
+
   async function saltoSeguro(time) {
     if (!videoEl) return;
+
+    tokenSalto++;
+    const miToken = tokenSalto;
 
     const haciaAdelante = time > videoEl.currentTime;
 
@@ -164,6 +161,14 @@ window.PartyHazz.controladorVideo = (() => {
       setTimeout(() => { clearInterval(checkInterval); resolve(); }, 4000);
     });
 
+    // ¡ABORTO DE SEGURIDAD!
+    // Si mientras esperábamos a que buffereara, llegó OTRO comando de salto,
+    // cancelamos este clic para no acumular pulsaciones del botón (+10s, +20s, +30s).
+    if (miToken !== tokenSalto) {
+      console.log(`[PartyHazz] Salto a ${time} abortado porque llegó un salto más reciente.`);
+      return;
+    }
+
     // 3. Ya no está buffereando. React procesará el clic sin problemas.
     if (preTime < time) {
       const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
@@ -187,22 +192,29 @@ window.PartyHazz.controladorVideo = (() => {
       setTimeout(() => { clearInterval(checkFinal); resolve(); }, 4000);
     });
 
-    if (videoEl) videoEl.style.opacity = '1';
+    if (miToken === tokenSalto && videoEl) {
+      videoEl.style.opacity = '1';
+    }
   }
 
   async function moverTiempo(time) {
     if (!videoEl) return;
+
+    // Si ya estamos exactamente en camino a este destino, ignoramos la orden redundante
+    if (tiempoDestino !== null && Math.abs(tiempoDestino - time) < 0.5) {
+      return;
+    }
+
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       tiempoDestino = time;
-      esAccionSync = true;
-
+      
       await saltoSeguro(time);
 
-      // Una vez terminado el salto, damos 500ms de gracia para atrapar 
-      // y descartar el evento 'seeked' nativo de Bitmovin.
+      // Limpiamos el rastro solo si otro salto más nuevo no ha sobreescrito nuestro destino
       setTimeout(() => { 
-        tiempoDestino = null; 
-        esAccionSync = false;
+        if (tiempoDestino === time) {
+          tiempoDestino = null; 
+        }
       }, 500);
     }
   }
