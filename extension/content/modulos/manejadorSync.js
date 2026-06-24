@@ -47,15 +47,15 @@ window.PartyHazz.manejadorSync = (() => {
     callbackEstado = onEstadoCambio;
 
     if (socket && socket.readyState === WebSocket.OPEN) {
-      console.log('[PartyHazz] WS ya conectado');
+
       return;
     }
 
-    console.log('[PartyHazz] Conectando a', url);
+    console.info('[PartyHazz] Conectando a servidor WebSocket...');
     socket = new WebSocket(url);
 
     socket.onopen = () => {
-      console.log('[PartyHazz] WS conectado');
+      console.info('[PartyHazz] Conexion establecida');
       notificarSW({ tipo: 'WS_CONECTADO' });
     };
 
@@ -69,7 +69,7 @@ window.PartyHazz.manejadorSync = (() => {
     };
 
     socket.onclose = (ev) => {
-      console.log('[PartyHazz] WS cerrado, code:', ev.code);
+      console.warn(`[PartyHazz] Conexion cerrada (Código: ${ev.code})`);
       socket = null;
       detenerSyncCheck();
       notificarSW({ tipo: 'WS_DESCONECTADO' });
@@ -201,7 +201,7 @@ window.PartyHazz.manejadorSync = (() => {
           if (absDiferencia < 4.0 && ctrl.estaReproduciendo()) {
             const nuevoRate = (diferencia < 0) ? 1.25 : 0.8;
             ctrl.setPlaybackRate(nuevoRate);
-            console.log(`[PartyHazz] Soft Sync: Velocidad a ${nuevoRate}x para corregir ${absDiferencia.toFixed(2)}s`);
+            console.info(`[PartyHazz] Soft Sync activo: ${nuevoRate}x (Desfase: ${absDiferencia.toFixed(2)}s)`);
 
             // Iniciar monitor de convergencia local
             iniciarSoftSync(tiempoEsperado, Date.now());
@@ -209,7 +209,7 @@ window.PartyHazz.manejadorSync = (() => {
           }
 
           // Compensacion de latencia mediante salto directo (Hard Sync)
-          console.log(`[PartyHazz] Hard Sync: Drift de ${absDiferencia.toFixed(2)}s. Forzando salto...`);
+          console.info(`[PartyHazz] Hard Sync ejecutado (Desfase critico: ${absDiferencia.toFixed(2)}s)`);
           terminarSoftSync();
           ui.mostrarAjustando();
           ctrl.aplicarSeek(tiempoEsperado);
@@ -322,7 +322,7 @@ window.PartyHazz.manejadorSync = (() => {
 
       // Si la diferencia ya es imperceptible (< 0.15s), volvemos a 1.0x
       if (Math.abs(diferencia) < 0.15) {
-        console.log(`[PartyHazz] Soft Sync exitoso. Restaurando velocidad a 1.0x`);
+        console.info('[PartyHazz] Sincronizacion optima alcanzada (1.0x)');
         terminarSoftSync();
       }
     }, 200);

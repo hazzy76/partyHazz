@@ -30,7 +30,7 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl = video;
     callbackEvento = onEventoUsuario;
     registrarEventos();
-    console.log('[PartyHazz] ControladorVideo iniciado');
+
   }
 
   function detener() {
@@ -69,7 +69,7 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl.addEventListener('seeking', () => {
       if (esAccionSync) return;
       if (!videoEl.paused) {
-        console.log('[PartyHazz] Salto detectado durante reproducción. Forzando Auto-Pausa.');
+        console.info('[PartyHazz] Intervencion de usuario detectada. Auto-pausa aplicada.');
         videoEl.pause();
       }
     });
@@ -77,7 +77,7 @@ window.PartyHazz.controladorVideo = (() => {
     // Reintentar reproduccion si el video estaba buffereando
     videoEl.addEventListener('canplay', () => {
       if (esperandoParaReproducir) {
-        console.log('[PartyHazz] Video buffereado. Disparando Play pendiente.');
+
         esperandoParaReproducir = false;
         setSyncLock();
         videoEl.play().catch(err => console.warn('[PartyHazz] Play falló en canplay:', err));
@@ -144,7 +144,7 @@ window.PartyHazz.controladorVideo = (() => {
 
     // Abortar si existe un salto mas reciente
     if (miToken !== tokenSalto) {
-      console.log(`[PartyHazz] Salto a ${time} abortado porque llegó un salto más reciente.`);
+
       return;
     }
 

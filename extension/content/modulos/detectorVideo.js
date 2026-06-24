@@ -24,11 +24,11 @@ window.PartyHazz.detectorVideo = (() => {
     const video = document.querySelector('video');
 
     if (video && video !== videoActual) {
-      console.log('[PartyHazz] Video encontrado:', video);
+
       videoActual = video;
       if (callbackVideoEncontrado) callbackVideoEncontrado(video);
     } else if (!video && videoActual) {
-      console.log('[PartyHazz] Video perdido');
+
       videoActual = null;
       if (callbackVideoLost) callbackVideoLost();
     }

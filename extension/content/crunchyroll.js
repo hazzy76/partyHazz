@@ -28,7 +28,7 @@
   function arrancar() {
     if (iniciado) return;
     iniciado = true;
-    console.log('[PartyHazz] Content script activo en', window.location.href);
+    console.log('[PartyHazz] Inicializado en Crunchyroll');
 
     // Iniciar deteccion del video
     PH.detectorVideo.iniciar(onVideoEncontrado, onVideoLost);
@@ -45,7 +45,7 @@
   // --------------------------------------------------------------------------
 
   function onVideoEncontrado(video) {
-    console.log('[PartyHazz] Video listo');
+
 
     // Conectar el controlador al nuevo video
     PH.controladorVideo.iniciar(video, onEventoUsuarioEnVideo);
@@ -58,7 +58,7 @@
   }
 
   function onVideoLost() {
-    console.log('[PartyHazz] Video desaparecio (navegacion SPA)');
+
     PH.controladorVideo.detener();
   }
 
@@ -70,7 +70,7 @@
     const sala = PH.manejadorSync.getEstadoSala();
     if (!sala) return; // No estamos en sala, ignorar
 
-    console.log('[PartyHazz] Evento usuario:', evento);
+
     PH.manejadorSync.enviarEventoSync(evento);
   }
 
@@ -128,7 +128,7 @@
       if (!result.estadoSala) return;
 
       const sala = result.estadoSala;
-      console.log('[PartyHazz] Restaurando sesion en sala', sala.idSala);
+      console.log(`[PartyHazz] Restaurando sesion en sala ${sala.idSala}`);
 
       obtenerUrlServidor((url) => {
         PH.manejadorSync.conectar(url, () => {});

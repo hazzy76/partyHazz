@@ -55,7 +55,7 @@ let timerMsgConfig = null;
 // ============================================================================
 
 async function inicializar() {
-  console.log('[PartyHazz]popup -> Inicializando popup');
+
   // Cargar config guardada
   chrome.runtime.sendMessage({ tipo: 'GET_CONFIG' }, (resp) => {
     if (resp && resp.urlServidor) {
@@ -64,9 +64,7 @@ async function inicializar() {
   });
 
   // Ver si hay sala activa
-  console.log('[PartyHazz]popup -> Se va a mandar el GET_ESTADO');
   chrome.runtime.sendMessage({ tipo: 'GET_ESTADO' }, (resp) => {
-    console.log('[PartyHazz]popup -> GET_ESTADO:', resp);
     if (resp && resp.estado) {
       estadoSalaActual = resp.estado;
       mostrarVistaSala(estadoSalaActual);
