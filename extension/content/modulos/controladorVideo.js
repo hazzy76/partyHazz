@@ -133,27 +133,30 @@ window.PartyHazz.controladorVideo = (() => {
     const haciaAdelante = time > videoEl.currentTime;
 
     // Calculamos un "Fake Time" a 10 segundos de distancia de nuestro destino.
-    // Usaremos los botones oficiales de 10s para recorrer ese último tramo
-    // y obligar a Bitmovin a descargar el video oficialmente.
     let fakeTime = haciaAdelante ? (time - 10) : (time + 10);
-
-    // Si vamos hacia adelante a un tiempo muy bajito (ej. seg 5), el fakeTime sería negativo.
-    // En ese caso, mejor lo mandamos 10s adelante y usamos el botón de retroceso.
     if (haciaAdelante && fakeTime < 0) {
       fakeTime = time + 10;
     }
 
-    // 1. Engañamos a Bitmovin poniéndolo a 10s del destino (se congelará)
+    // UX HACK: Ocultamos el video temporalmente para que el usuario no vea 
+    // los brincos visuales de 10s mientras engañamos a React.
+    videoEl.style.transition = 'opacity 0.1s';
+    videoEl.style.opacity = '0';
+
+    // 1. Engañamos a Bitmovin poniéndolo a 10s del destino
     videoEl.currentTime = fakeTime;
 
-    // 2. MAGIA: Le disparamos un evento nativo para obligar al React interno de 
-    // Katamari a actualizar su reloj y creer que de verdad estamos en fakeTime.
+    // 2. MAGIA: Disparamos timeupdate para obligar a React a asimilar el fakeTime
     videoEl.dispatchEvent(new Event('timeupdate'));
 
-    // 3. Le damos tiempo a React de procesar el evento (solo 20ms para que sea imperceptible) y luego...
+    // 3. Le damos 400ms a React para que asimile el estado.
+    // (En la simulación descubrimos que si esto es muy corto, React calcula el salto
+    // desde la posición original, creando el bucle de arrastre de 10s en 10s).
     setTimeout(() => {
       if (!videoEl) return;
-      // ...pulsamos el botón oficial para romper el hielo. Un solo clic perfecto.
+      
+      // Pulsamos el botón oficial. Katamari leerá su estado (que ahora sí es fakeTime)
+      // y sumará o restará 10, cayendo EXACTAMENTE en el tiempo destino.
       if (videoEl.currentTime < time) {
         const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
         if (btnFwd) btnFwd.click();
@@ -164,15 +167,13 @@ window.PartyHazz.controladorVideo = (() => {
         else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
       }
 
-      // Un micro-ajuste ultra fino final hacia ADELANTE 
-      // (Reducido a 50ms para que el usuario no vea los brincos)
+      // El clic ya ordenó oficialmente el salto a Bitmovin.
+      // Solo restauramos la visión al usuario después de un instante.
       setTimeout(() => {
-        if (videoEl && videoEl.currentTime < time && Math.abs(videoEl.currentTime - time) > 1) {
-          videoEl.currentTime = time;
-        }
-      }, 50);
+        if (videoEl) videoEl.style.opacity = '1';
+      }, 150);
 
-    }, 20);
+    }, 400);
   }
 
   function moverTiempo(time) {
