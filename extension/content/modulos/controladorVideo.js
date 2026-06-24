@@ -71,6 +71,11 @@ window.PartyHazz.controladorVideo = (() => {
 
     // Seek manual del usuario (seeked = cuando termino de moverse, no durante)
     videoEl.addEventListener('seeked', () => {
+      // Bloqueo definitivo de bucles: si el reproductor acaba de llegar al tiempo
+      // que el servidor le ordenó (tiempoDestino), ignoramos este evento.
+      if (tiempoDestino !== null && Math.abs(videoEl.currentTime - tiempoDestino) < 2) {
+        return;
+      }
       if (esAccionSync) return;
       callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
     });
@@ -82,8 +87,8 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl.addEventListener('seeking', () => {
       if (esAccionSync) return;
       if (!videoEl.paused) {
-         console.log('[PartyHazz] Salto detectado durante reproducción. Forzando Auto-Pausa.');
-         videoEl.pause();
+        console.log('[PartyHazz] Salto detectado durante reproducción. Forzando Auto-Pausa.');
+        videoEl.pause();
       }
     });
 
@@ -124,50 +129,50 @@ window.PartyHazz.controladorVideo = (() => {
   // Estrategia final para domar a Katamari/Bitmovin sin crashear su estado de React
   function saltoSeguro(time) {
     if (!videoEl) return;
-    
+
     const haciaAdelante = time > videoEl.currentTime;
 
     // Calculamos un "Fake Time" a 10 segundos de distancia de nuestro destino.
     // Usaremos los botones oficiales de 10s para recorrer ese último tramo
     // y obligar a Bitmovin a descargar el video oficialmente.
     let fakeTime = haciaAdelante ? (time - 10) : (time + 10);
-    
+
     // Si vamos hacia adelante a un tiempo muy bajito (ej. seg 5), el fakeTime sería negativo.
     // En ese caso, mejor lo mandamos 10s adelante y usamos el botón de retroceso.
     if (haciaAdelante && fakeTime < 0) {
-       fakeTime = time + 10;
+      fakeTime = time + 10;
     }
 
     // 1. Engañamos a Bitmovin poniéndolo a 10s del destino (se congelará)
     videoEl.currentTime = fakeTime;
-    
+
     // 2. MAGIA: Le disparamos un evento nativo para obligar al React interno de 
     // Katamari a actualizar su reloj y creer que de verdad estamos en fakeTime.
     videoEl.dispatchEvent(new Event('timeupdate'));
-    
-    // 3. Le damos tiempo a React de procesar el evento (150ms) y luego...
+
+    // 3. Le damos tiempo a React de procesar el evento (solo 20ms para que sea imperceptible) y luego...
     setTimeout(() => {
-       if (!videoEl) return;
-       // ...pulsamos el botón oficial para romper el hielo. Un solo clic perfecto.
-       if (videoEl.currentTime < time) {
-          const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
-          if (btnFwd) btnFwd.click();
-          else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, bubbles: true }));
-       } else {
-          const btnBck = document.querySelector('[data-testid="jump-backward-button"]');
-          if (btnBck) btnBck.click();
-          else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
-       }
-       
-       // Un micro-ajuste ultra fino final hacia ADELANTE 
-       // (los micro-saltos hacia adelante casi nunca congelan Bitmovin)
-       setTimeout(() => {
-          if (videoEl && videoEl.currentTime < time && Math.abs(videoEl.currentTime - time) > 1) {
-             videoEl.currentTime = time;
-          }
-       }, 300);
-       
-    }, 150);
+      if (!videoEl) return;
+      // ...pulsamos el botón oficial para romper el hielo. Un solo clic perfecto.
+      if (videoEl.currentTime < time) {
+        const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
+        if (btnFwd) btnFwd.click();
+        else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, bubbles: true }));
+      } else {
+        const btnBck = document.querySelector('[data-testid="jump-backward-button"]');
+        if (btnBck) btnBck.click();
+        else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
+      }
+
+      // Un micro-ajuste ultra fino final hacia ADELANTE 
+      // (Reducido a 50ms para que el usuario no vea los brincos)
+      setTimeout(() => {
+        if (videoEl && videoEl.currentTime < time && Math.abs(videoEl.currentTime - time) > 1) {
+          videoEl.currentTime = time;
+        }
+      }, 50);
+
+    }, 20);
   }
 
   function moverTiempo(time) {
@@ -215,18 +220,18 @@ window.PartyHazz.controladorVideo = (() => {
 
   function getTiempoActual() {
     if (!videoEl) return 0;
-    
+
     // Si estamos en la ventana asíncrona de React, devolver el tiempo falso
     if (tiempoDestino !== null) {
       if (Math.abs(videoEl.currentTime - tiempoDestino) < 1) {
-         // Ya llegamos a la meta, limpiar
-         tiempoDestino = null;
-         if (timerDestino) clearTimeout(timerDestino);
+        // Ya llegamos a la meta, limpiar
+        tiempoDestino = null;
+        if (timerDestino) clearTimeout(timerDestino);
       } else {
-         return tiempoDestino;
+        return tiempoDestino;
       }
     }
-    
+
     return videoEl.currentTime;
   }
 

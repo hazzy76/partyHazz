@@ -108,8 +108,8 @@ public class MainVerticle extends AbstractVerticle {
                 .onSuccess(s -> {
                     log.info("╔══════════════════════════════════════════╗");
                     log.info("║  PartyHazz WebSocket Server              ║");
-                    log.info("║  Listening on ws://0.0.0.0:{}            ║", port);
-                    log.info("║  Endpoint: ws://<host>:{}/ws             ║", port);
+                    log.info("║  Listening on ws://0.0.0.0:{}          ║", port);
+                    log.info("║  Endpoint: ws://<host>:{}/ws           ║", port);
                     log.info("╚══════════════════════════════════════════╝");
                     startPromise.complete();
                 })

@@ -30,5 +30,12 @@ EXPOSE 8080
 
 ENV PORT=8080
 
+# Create a non-root user and group
+RUN addgroup -S partyhazz && adduser -S partyhazz -G partyhazz
+RUN chown -R partyhazz:partyhazz /app
+
+# Switch to the non-root user
+USER partyhazz
+
 # Run the server
 ENTRYPOINT ["java", "-jar", "partyhazz-server.jar"]
