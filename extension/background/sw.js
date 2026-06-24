@@ -10,7 +10,7 @@
  *   Content Script --[runtime.sendMessage]--> SW --[runtime.sendMessage]--> Popup
  */
 
-const URL_SERVIDOR_DEFAULT = 'ws://localhost:8080/ws';
+const URL_SERVIDOR_DEFAULT = 'wss://pruebassae.eld.edu.mx/ws';
 
 // Tipos que van del popup/SW hacia el content script
 const TIPOS_HACIA_CONTENT = ['CREAR_SALA', 'UNIR_SALA', 'DEJAR_SALA'];

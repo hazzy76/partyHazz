@@ -35,22 +35,12 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl = video;
     callbackEvento = onEventoUsuario;
     registrarEventos();
-    inyectarScriptReact();
     console.log('[PartyHazz] ControladorVideo iniciado');
   }
 
   function detener() {
     videoEl = null;
     callbackEvento = null;
-  }
-
-  // --------------------------------------------------------------------------
-  // Hack de React Fiber (Ejecutado en el contexto de la página principal)
-  // --------------------------------------------------------------------------
-
-  function inyectarScriptReact() {
-    // Ya no inyectamos el hack de React. Katamari bloquea eventos sintéticos no confiables.
-    // Usaremos el "Deadlock Breaker" nativo en su lugar.
   }
 
   // --------------------------------------------------------------------------

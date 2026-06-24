@@ -10,13 +10,13 @@
 }
 
 :root {
-  --color-fondo:       #0e0e12;
-  --color-superficie:  #16161e;
-  --color-borde:       rgba(255, 255, 255, 0.08);
-  --color-acento:      #ff7700;
-  --color-acento-glow: rgba(255, 119, 0, 0.25);
-  --color-texto:       #f0f0f5;
-  --color-texto-dim:   rgba(240, 240, 245, 0.5);
+  --color-fondo:       #0b120c;
+  --color-superficie:  #121d13;
+  --color-borde:       rgba(16, 185, 129, 0.15);
+  --color-acento:      #10b981;
+  --color-acento-glow: rgba(16, 185, 129, 0.25);
+  --color-texto:       #f0fdf4;
+  --color-texto-dim:   rgba(240, 253, 244, 0.5);
   --color-ok:          #4ade80;
   --color-peligro:     #f87171;
   --color-warn:        #fbbf24;
@@ -166,13 +166,13 @@ html, body {
 .ph-btn:active { transform: scale(0.97); }
 
 .ph-btn--primario {
-  background: linear-gradient(135deg, #ff7700, #ff4d00);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: #fff;
-  box-shadow: 0 4px 16px rgba(255, 119, 0, 0.35);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
 }
 
 .ph-btn--primario:hover {
-  box-shadow: 0 6px 24px rgba(255, 119, 0, 0.5);
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.5);
   transform: translateY(-1px);
 }
 
@@ -348,7 +348,7 @@ html, body {
   align-items: center;
   gap: 10px;
   background: none;
-  border: 2px dashed rgba(255, 119, 0, 0.4);
+  border: 2px dashed rgba(16, 185, 129, 0.4);
   border-radius: 10px;
   padding: 10px 20px;
   cursor: pointer;
@@ -424,7 +424,7 @@ html, body {
 .ph-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(255, 119, 0, 0.2);
+  border: 3px solid rgba(16, 185, 129, 0.2);
   border-top-color: var(--color-acento);
   border-radius: 50%;
   animation: ph-spin 0.8s linear infinite;

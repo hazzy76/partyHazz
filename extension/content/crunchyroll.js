@@ -149,7 +149,7 @@
 
   function obtenerUrlServidor(callback) {
     chrome.runtime.sendMessage({ tipo: 'GET_CONFIG' }, (resp) => {
-      callback(resp && resp.urlServidor ? resp.urlServidor : 'ws://localhost:8080/ws');
+      callback(resp && resp.urlServidor ? resp.urlServidor : 'wss://pruebassae.eld.edu.mx/ws');
     });
   }
 

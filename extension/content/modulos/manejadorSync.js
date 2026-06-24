@@ -28,7 +28,7 @@ window.PartyHazz.manejadorSync = (() => {
   // --------------------------------------------------------------------------
   let socket = null;
   let estadoSala = null;   // { idSala, idParticipante, isHost }
-  let urlServidor = 'ws://localhost:8080/ws';
+  let urlServidor = 'wss://pruebassae.eld.edu.mx/ws';
   let timerSync = null;
   let timerSoftSync = null; // Monitor local para Soft Sync
   let callbackEstado = null;   // Notifica cambios de estado al orchestrator
