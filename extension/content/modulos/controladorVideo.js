@@ -157,7 +157,7 @@ window.PartyHazz.controladorVideo = (() => {
       
       // Pulsamos el botón oficial. Katamari leerá su estado (que ahora sí es fakeTime)
       // y sumará o restará 10, cayendo EXACTAMENTE en el tiempo destino.
-      if (videoEl.currentTime < time) {
+      if (haciaAdelante) {
         const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
         if (btnFwd) btnFwd.click();
         else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, bubbles: true }));
