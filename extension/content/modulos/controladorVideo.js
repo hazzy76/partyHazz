@@ -113,10 +113,13 @@ window.PartyHazz.controladorVideo = (() => {
 
   // --------------------------------------------------------------------------
   // Aplicar comandos externos (sin generar eventos de sync)
-  // --------------------------------------------------------------------------
+  // -------------------------------------------------------------------------  let tokenSalto = 0;
 
   async function saltoSeguro(time) {
     if (!videoEl) return;
+
+    tokenSalto++;
+    const miToken = tokenSalto;
 
     const haciaAdelante = time > videoEl.currentTime;
 
@@ -124,17 +127,11 @@ window.PartyHazz.controladorVideo = (() => {
     let preTime = haciaAdelante ? (time - 10) : (time + 10);
 
     if (haciaAdelante && preTime < 0) {
-      // Borde inicial: Si vamos adelante pero el tiempo es muy chico (ej. 0:05), 
-      // saltamos a 15s y usamos el botón de retroceso.
       preTime = time + 10;
     } else if (!haciaAdelante && videoEl.duration && preTime > videoEl.duration) {
-      // Borde final: Si vamos hacia atrás pero muy cerca del final del video (ej. 23:55 de 24:00),
-      // saltamos a 23:45 y usamos el botón de adelanto.
       preTime = time - 10;
     }
 
-    // UX HACK: Ocultamos el video temporalmente para que el usuario no vea 
-    // los brincos visuales de 10s mientras engañamos a React.
     videoEl.style.transition = 'opacity 0.1s';
     videoEl.style.opacity = '0';
 
@@ -143,7 +140,6 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl.dispatchEvent(new Event('timeupdate'));
 
     // 2. ESPERAMOS a que el video termine de cargar el preTime.
-    // Katamari bloquea/ignora los clics de la UI mientras está buffereando.
     await new Promise(resolve => {
       const checkInterval = setInterval(() => {
         if (videoEl.readyState >= 3) {
@@ -155,6 +151,14 @@ window.PartyHazz.controladorVideo = (() => {
       // Timeout de seguridad (max 4 segundos de espera)
       setTimeout(() => { clearInterval(checkInterval); resolve(); }, 4000);
     });
+
+    // ¡ABORTO DE SEGURIDAD!
+    // Si mientras esperábamos a que buffereara, llegó OTRO comando de salto,
+    // cancelamos este clic para no acumular pulsaciones del botón (+10s, +20s, +30s).
+    if (miToken !== tokenSalto) {
+      console.log(`[PartyHazz] Salto a ${time} abortado porque llegó un salto más reciente.`);
+      return;
+    }
 
     // 3. Ya no está buffereando. React procesará el clic sin problemas.
     if (preTime < time) {
@@ -176,11 +180,13 @@ window.PartyHazz.controladorVideo = (() => {
         }
       }, 50);
       
-      // Timeout de seguridad (max 4 segundos de espera extra)
       setTimeout(() => { clearInterval(checkFinal); resolve(); }, 4000);
     });
 
-    if (videoEl) videoEl.style.opacity = '1';
+    // Verificamos de nuevo por si se canceló durante la carga final
+    if (miToken === tokenSalto && videoEl) {
+      videoEl.style.opacity = '1';
+    }
   }
 
   async function moverTiempo(time) {
