@@ -192,30 +192,29 @@ window.PartyHazz.manejadorSync = (() => {
         const absDiferencia = Math.abs(diferencia);
 
         if (absDiferencia > TOLERANCIA_SYNC_SEG) {
-          // EVITAR EL BUCLE DE BUFFERING ABORTADO
+          // Ignorar verificacion si hay buffering en progreso
           if (ctrl.estaBuffereando && ctrl.estaBuffereando()) {
             return;
           }
 
-          // SOFT SYNC (Velocity Sync): 
-          // Aceleramos/frenamos el video y monitoreamos localmente.
+          // Compensacion de latencia mediante ajuste de velocidad (Soft Sync)
           if (absDiferencia < 4.0 && ctrl.estaReproduciendo()) {
             const nuevoRate = (diferencia < 0) ? 1.25 : 0.8;
             ctrl.setPlaybackRate(nuevoRate);
             console.log(`[PartyHazz] Soft Sync: Velocidad a ${nuevoRate}x para corregir ${absDiferencia.toFixed(2)}s`);
 
-            // Iniciar monitor local para detener el Soft Sync exacto en el punto de encuentro
+            // Iniciar monitor de convergencia local
             iniciarSoftSync(tiempoEsperado, Date.now());
             return;
           }
 
-          // HARD SYNC:
+          // Compensacion de latencia mediante salto directo (Hard Sync)
           console.log(`[PartyHazz] Hard Sync: Drift de ${absDiferencia.toFixed(2)}s. Forzando salto...`);
           terminarSoftSync();
           ui.mostrarAjustando();
           ctrl.aplicarSeek(tiempoEsperado);
         } else {
-          // Si estamos sincronizados, restauramos velocidad normal
+          // Restaurar estado normal si no hay desfase
           terminarSoftSync();
         }
         break;
@@ -273,18 +272,12 @@ window.PartyHazz.manejadorSync = (() => {
   function iniciarSyncCheck() {
     detenerSyncCheck();
     timerSync = setInterval(() => {
-      // REGLA DE ORO (Dictador de Sincronización): 
-      // SÓLO el Host puede enviar chequeos de sincronización periódicos.
-      // Si todos los clientes enviaran su tiempo, crearían un juego de la soga
-      // (Tug of War) donde los que cargan más lento arrastrarían a los rápidos 
-      // hacia el pasado infinitamente.
+      // Limitar emision de eventos de sincronizacion exclusivamente al Host
       if (!estadoSala || !estadoSala.isHost) return;
 
       const ctrl = window.PartyHazz.controladorVideo;
 
-      // Si nuestro reproductor está atascado buffereando, nuestro tiempo actual
-      // es falso o está congelado. NO debemos mandarlo al servidor porque
-      // arrastraríamos a los demás hacia atrás por error.
+      // Suspender emision de sincronizacion durante el buffering
       if (ctrl.estaBuffereando && ctrl.estaBuffereando()) {
         return;
       }

@@ -1,13 +1,8 @@
 /**
  * controladorVideo.js — Modulo: control del <video> sin disparar loops de sync.
  *
- * El problema clasico de sync: cuando aplicamos play/pause/seek por un comando
- * externo, el evento del video volveria a dispararse y enviariamos otro mensaje
- * al servidor, creando un loop infinito.
- *
- * Solucion: flag `esAccionSync` que bloquea el reenvio durante acciones
- * aplicadas por nosotros.
- *
+ * Gestiona el elemento <video>, intercepta eventos nativos del usuario y expone
+ * una API para aplicar comandos remotos suprimiendo el eco de eventos.
  * Expone: window.PartyHazz.controladorVideo
  */
 
@@ -62,8 +57,7 @@ window.PartyHazz.controladorVideo = (() => {
 
     // Seek manual del usuario (seeked = cuando termino de moverse, no durante)
     videoEl.addEventListener('seeked', () => {
-      // Bloqueo definitivo de bucles: si el reproductor acaba de llegar al tiempo
-      // que el servidor le ordenó (tiempoDestino), ignoramos este evento.
+      // Ignorar eventos generados programmaticamente
       if (tiempoDestino !== null && Math.abs(videoEl.currentTime - tiempoDestino) < 2) {
         return;
       }
@@ -71,10 +65,7 @@ window.PartyHazz.controladorVideo = (() => {
       callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
     });
 
-    // Auto-Pausa al saltar: Si el usuario salta mientras el video está reproduciendo,
-    // forzamos una pausa. Esto enviará un evento PAUSA al otro cliente, asegurando
-    // que ambos se queden pausados en el nuevo punto hasta que el Host esté listo
-    // y vuelva a darle Play manualmente. (Igual que Netflix Party).
+    // Forzar pausa si ocurre un salto manual durante la reproduccion
     videoEl.addEventListener('seeking', () => {
       if (esAccionSync) return;
       if (!videoEl.paused) {
@@ -83,7 +74,7 @@ window.PartyHazz.controladorVideo = (() => {
       }
     });
 
-    // Escudo protector contra el AbortError de React
+    // Reintentar reproduccion si el video estaba buffereando
     videoEl.addEventListener('canplay', () => {
       if (esperandoParaReproducir) {
         console.log('[PartyHazz] Video buffereado. Disparando Play pendiente.');
@@ -96,7 +87,7 @@ window.PartyHazz.controladorVideo = (() => {
   }
 
   // --------------------------------------------------------------------------
-  // Bloqueo de bucles infinitos
+  // Gestion de bloqueos de sincronizacion
   // --------------------------------------------------------------------------
 
   function setSyncLock() {
@@ -123,7 +114,7 @@ window.PartyHazz.controladorVideo = (() => {
 
     const haciaAdelante = time > videoEl.currentTime;
 
-    // Calculamos un "Pre Tiempo" a 10 segundos de distancia de nuestro destino.
+    // Determinar posicion de pre-carga (10s del destino)
     let preTime = haciaAdelante ? (time - 10) : (time + 10);
 
     if (haciaAdelante && preTime < 0) {
@@ -135,11 +126,11 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl.style.transition = 'opacity 0.1s';
     videoEl.style.opacity = '0';
 
-    // 1. Engañamos a Bitmovin poniéndolo a 10s del destino
+    // 1. Simular avance para inicializar la carga
     videoEl.currentTime = preTime;
     videoEl.dispatchEvent(new Event('timeupdate'));
 
-    // 2. ESPERAMOS a que el video termine de cargar el preTime.
+    // 2. Esperar carga del preTime
     await new Promise(resolve => {
       const checkInterval = setInterval(() => {
         if (videoEl.readyState >= 3) {
@@ -151,15 +142,13 @@ window.PartyHazz.controladorVideo = (() => {
       setTimeout(() => { clearInterval(checkInterval); resolve(); }, 4000);
     });
 
-    // ¡ABORTO DE SEGURIDAD!
-    // Si mientras esperábamos a que buffereara, llegó OTRO comando de salto,
-    // cancelamos este clic para no acumular pulsaciones del botón (+10s, +20s, +30s).
+    // Abortar si existe un salto mas reciente
     if (miToken !== tokenSalto) {
       console.log(`[PartyHazz] Salto a ${time} abortado porque llegó un salto más reciente.`);
       return;
     }
 
-    // 3. Ya no está buffereando. React procesará el clic sin problemas.
+    // 3. Simular clic de navegacion en la interfaz nativa
     if (preTime < time) {
       const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
       if (btnFwd) btnFwd.click();
@@ -170,7 +159,7 @@ window.PartyHazz.controladorVideo = (() => {
       else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
     }
 
-    // 4. Esperamos a que Katamari cargue el destino final antes de devolver la visión
+    // 4. Esperar carga del destino final
     await new Promise(resolve => {
       const checkFinal = setInterval(() => {
         if (videoEl.readyState >= 3 && Math.abs(videoEl.currentTime - time) < 1.5) {
@@ -190,7 +179,7 @@ window.PartyHazz.controladorVideo = (() => {
   async function moverTiempo(time) {
     if (!videoEl) return;
 
-    // Si ya estamos exactamente en camino a este destino, ignoramos la orden redundante
+    // Ignorar saltos redundantes
     if (tiempoDestino !== null && Math.abs(tiempoDestino - time) < 0.5) {
       return;
     }
@@ -200,7 +189,7 @@ window.PartyHazz.controladorVideo = (() => {
 
       await saltoSeguro(time);
 
-      // Limpiamos el rastro solo si otro salto más nuevo no ha sobreescrito nuestro destino
+      // Limpiar estado de destino
       setTimeout(() => {
         if (tiempoDestino === time) {
           tiempoDestino = null;
@@ -249,7 +238,7 @@ window.PartyHazz.controladorVideo = (() => {
   function getTiempoActual() {
     if (!videoEl) return 0;
 
-    // Si estamos en la ventana asíncrona de React, devolver el tiempo falso
+    // Devolver tiempo proyectado durante saltos asincronos
     if (tiempoDestino !== null) {
       if (Math.abs(videoEl.currentTime - tiempoDestino) < 1) {
         return videoEl.currentTime;
