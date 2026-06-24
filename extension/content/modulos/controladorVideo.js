@@ -16,11 +16,9 @@ window.PartyHazz = window.PartyHazz || {};
 window.PartyHazz.controladorVideo = (() => {
   let videoEl = null;
   let esAccionSync = false;       // true = ignorar el proximo evento del video
-  let timerSyncLock = null;
   let callbackEvento = null;      // funcion a llamar cuando el usuario interactua
   let esperandoParaReproducir = false;
   let tiempoDestino = null;
-  let timerDestino = null;
 
   // --------------------------------------------------------------------------
   // Inicializacion
@@ -111,8 +109,6 @@ window.PartyHazz.controladorVideo = (() => {
 
   function setSyncLock() {
     esAccionSync = true;
-    if (timerSyncLock) clearTimeout(timerSyncLock);
-    timerSyncLock = setTimeout(() => { esAccionSync = false; }, 6000);
   }
 
   // --------------------------------------------------------------------------
@@ -187,22 +183,27 @@ window.PartyHazz.controladorVideo = (() => {
     if (videoEl) videoEl.style.opacity = '1';
   }
 
-  function moverTiempo(time) {
+  async function moverTiempo(time) {
     if (!videoEl) return;
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       tiempoDestino = time;
-      //limpia y aplica un temposizador par amandar tiempoDestino = null despues de 6 segundos
-      if (timerDestino) clearTimeout(timerDestino);
-      timerDestino = setTimeout(() => { tiempoDestino = null; }, 6000);
+      esAccionSync = true;
 
-      saltoSeguro(time);
+      await saltoSeguro(time);
+
+      // Una vez terminado el salto, damos 500ms de gracia para atrapar 
+      // y descartar el evento 'seeked' nativo de Bitmovin.
+      setTimeout(() => { 
+        tiempoDestino = null; 
+        esAccionSync = false;
+      }, 500);
     }
   }
 
-  function aplicarPlay(time) {
+  async function aplicarPlay(time) {
     if (!videoEl) return;
     setSyncLock();
-    moverTiempo(time);
+    await moverTiempo(time);
 
     if (videoEl.readyState < 3) {
       esperandoParaReproducir = true;
@@ -213,18 +214,18 @@ window.PartyHazz.controladorVideo = (() => {
     }
   }
 
-  function aplicarPausa(time) {
+  async function aplicarPausa(time) {
     if (!videoEl) return;
     setSyncLock();
     esperandoParaReproducir = false;
-    moverTiempo(time);
+    await moverTiempo(time);
     videoEl.pause();
   }
 
-  function aplicarSeek(time) {
+  async function aplicarSeek(time) {
     if (!videoEl) return;
     setSyncLock();
-    moverTiempo(time);
+    await moverTiempo(time);
   }
 
   // --------------------------------------------------------------------------
@@ -237,9 +238,7 @@ window.PartyHazz.controladorVideo = (() => {
     // Si estamos en la ventana asíncrona de React, devolver el tiempo falso
     if (tiempoDestino !== null) {
       if (Math.abs(videoEl.currentTime - tiempoDestino) < 1) {
-        // Ya llegamos a la meta, limpiar
-        tiempoDestino = null;
-        if (timerDestino) clearTimeout(timerDestino);
+        return videoEl.currentTime;
       } else {
         return tiempoDestino;
       }
