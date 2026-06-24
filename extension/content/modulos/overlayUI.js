@@ -12,11 +12,11 @@
 window.PartyHazz = window.PartyHazz || {};
 
 window.PartyHazz.overlayUI = (() => {
-  const ID_OVERLAY        = 'partyhazz-overlay';
-  const ID_BADGE_SALA     = 'partyhazz-badge-sala';
-  const ID_BADGE_SYNC     = 'partyhazz-badge-sync';
-  const ID_BTN_SALIR      = 'partyhazz-btn-salir';
-  const ID_BADGE_PARTICS  = 'partyhazz-badge-partics';
+  const ID_OVERLAY = 'partyhazz-overlay';
+  const ID_BADGE_SALA = 'partyhazz-badge-sala';
+  const ID_BADGE_SYNC = 'partyhazz-badge-sync';
+  const ID_BTN_SALIR = 'partyhazz-btn-salir';
+  const ID_BADGE_PARTICS = 'partyhazz-badge-partics';
 
   let timerOcultarSync = null;
 
@@ -62,13 +62,13 @@ window.PartyHazz.overlayUI = (() => {
   function mostrarSala(estadoSala) {
     crearOverlay();
 
-    const elSala    = document.getElementById(ID_BADGE_SALA);
+    const elSala = document.getElementById(ID_BADGE_SALA);
     const elPartics = document.getElementById(ID_BADGE_PARTICS);
-    const el        = document.getElementById(ID_OVERLAY);
+    const el = document.getElementById(ID_OVERLAY);
 
-    if (elSala)    elSala.textContent    = `Sala: ${estadoSala.idSala}${estadoSala.isHost ? ' 👑' : ''}`;
+    if (elSala) elSala.textContent = `Sala: ${estadoSala.idSala}${estadoSala.isHost ? ' 👑' : ''}`;
     if (elPartics) elPartics.textContent = `👤 ${estadoSala.participantes || 1}`;
-    if (el)        el.classList.add('ph-visible');
+    if (el) el.classList.add('ph-visible');
   }
 
   function actualizarParticipantes(cantidad) {
@@ -104,7 +104,7 @@ window.PartyHazz.overlayUI = (() => {
     const el = document.getElementById(ID_BADGE_SYNC);
     if (!el) return;
     el.textContent = texto;
-    el.className   = `ph-sync ${clase}`;
+    el.className = `ph-sync ${clase}`;
   }
 
   return {

@@ -88,7 +88,7 @@ window.PartyHazz.manejadorSync = (() => {
       socket = null;
     }
     estadoSala = null;
-    chrome.runtime.sendMessage({ tipo: 'LIMPIAR_ESTADO' }).catch(() => {});
+    chrome.runtime.sendMessage({ tipo: 'LIMPIAR_ESTADO' }).catch(() => { });
   }
 
   /**
@@ -203,7 +203,7 @@ window.PartyHazz.manejadorSync = (() => {
             const nuevoRate = (diferencia < 0) ? 1.25 : 0.8;
             ctrl.setPlaybackRate(nuevoRate);
             console.log(`[PartyHazz] Soft Sync: Velocidad a ${nuevoRate}x para corregir ${absDiferencia.toFixed(2)}s`);
-            
+
             // Iniciar monitor local para detener el Soft Sync exacto en el punto de encuentro
             iniciarSoftSync(tiempoEsperado, Date.now());
             return;
@@ -246,7 +246,7 @@ window.PartyHazz.manejadorSync = (() => {
         ui.mostrarError(msg.message);
         notificarSW({ tipo: 'ERROR', mensaje: msg.message });
         // Limpiar estado huerfano para evitar reconexiones a salas muertas
-        chrome.runtime.sendMessage({ tipo: 'LIMPIAR_ESTADO' }).catch(() => {});
+        chrome.runtime.sendMessage({ tipo: 'LIMPIAR_ESTADO' }).catch(() => { });
         break;
 
       default:
@@ -281,7 +281,7 @@ window.PartyHazz.manejadorSync = (() => {
       if (!estadoSala || !estadoSala.isHost) return;
 
       const ctrl = window.PartyHazz.controladorVideo;
-      
+
       // Si nuestro reproductor está atascado buffereando, nuestro tiempo actual
       // es falso o está congelado. NO debemos mandarlo al servidor porque
       // arrastraríamos a los demás hacia atrás por error.
@@ -310,9 +310,9 @@ window.PartyHazz.manejadorSync = (() => {
 
   function iniciarSoftSync(tiempoDestinoHost, tsRecibido) {
     const ctrl = window.PartyHazz.controladorVideo;
-    
+
     if (timerSoftSync) clearInterval(timerSoftSync);
-    
+
     timerSoftSync = setInterval(() => {
       // Si el video se pausó, abortamos el soft sync
       if (!ctrl.estaReproduciendo()) {
@@ -329,8 +329,8 @@ window.PartyHazz.manejadorSync = (() => {
 
       // Si la diferencia ya es imperceptible (< 0.15s), volvemos a 1.0x
       if (Math.abs(diferencia) < 0.15) {
-         console.log(`[PartyHazz] Soft Sync exitoso. Restaurando velocidad a 1.0x`);
-         terminarSoftSync();
+        console.log(`[PartyHazz] Soft Sync exitoso. Restaurando velocidad a 1.0x`);
+        terminarSoftSync();
       }
     }, 200);
   }
@@ -364,7 +364,7 @@ window.PartyHazz.manejadorSync = (() => {
   function guardarEstadoSesion() {
     // El content script no puede acceder a chrome.storage.session directamente.
     // Delegamos al SW que sí tiene acceso.
-    chrome.runtime.sendMessage({ tipo: 'GUARDAR_ESTADO', estadoSala }).catch(() => {});
+    chrome.runtime.sendMessage({ tipo: 'GUARDAR_ESTADO', estadoSala }).catch(() => { });
   }
 
   // --------------------------------------------------------------------------

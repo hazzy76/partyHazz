@@ -147,7 +147,7 @@ window.PartyHazz.controladorVideo = (() => {
           resolve();
         }
       }, 50);
-      
+
       setTimeout(() => { clearInterval(checkInterval); resolve(); }, 4000);
     });
 
@@ -178,7 +178,7 @@ window.PartyHazz.controladorVideo = (() => {
           resolve();
         }
       }, 50);
-      
+
       setTimeout(() => { clearInterval(checkFinal); resolve(); }, 4000);
     });
 
@@ -197,13 +197,13 @@ window.PartyHazz.controladorVideo = (() => {
 
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       tiempoDestino = time;
-      
+
       await saltoSeguro(time);
 
       // Limpiamos el rastro solo si otro salto más nuevo no ha sobreescrito nuestro destino
-      setTimeout(() => { 
+      setTimeout(() => {
         if (tiempoDestino === time) {
-          tiempoDestino = null; 
+          tiempoDestino = null;
         }
       }, 500);
     }
