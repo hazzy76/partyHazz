@@ -19,6 +19,8 @@ window.PartyHazz.controladorVideo = (() => {
   let timerSyncLock = null;
   let callbackEvento = null;      // funcion a llamar cuando el usuario interactua
   let esperandoParaReproducir = false;
+  let tiempoDestino = null;
+  let timerDestino = null;
 
   // --------------------------------------------------------------------------
   // Inicializacion
@@ -104,38 +106,35 @@ window.PartyHazz.controladorVideo = (() => {
   }
 
   // --------------------------------------------------------------------------
-  // Bloqueo de bucles infinitos
+  // Cambia esAccionSync a true por 3 seg. se manera asincrona para que ignore los eventos de pausa, seeked, etc que se generen
   // --------------------------------------------------------------------------
 
   function setSyncLock() {
     esAccionSync = true;
     if (timerSyncLock) clearTimeout(timerSyncLock);
-    // Aumentamos a 3000ms.
-    // La nueva lógica saltoSeguro() tarda unos 450ms en terminar sus setTimeout.
-    // Sumando el tiempo que tarda Bitmovin en descargar el video, el evento nativo
-    // 'seeked' puede dispararse 1 o 2 segundos después. Si el candado se libera antes,
-    // la extensión cree que fue un salto manual y retransmite el evento al otro cliente,
-    // causando el famoso bucle infinito. 3 segundos es un margen perfecto.
-    timerSyncLock = setTimeout(() => { esAccionSync = false; }, 3000);
+    timerSyncLock = setTimeout(() => { esAccionSync = false; }, 6000);
   }
 
   // --------------------------------------------------------------------------
   // Aplicar comandos externos (sin generar eventos de sync)
   // --------------------------------------------------------------------------
 
-  let tiempoDestino = null;
-  let timerDestino = null;
-
-  // Estrategia final para domar a Katamari/Bitmovin sin crashear su estado de React
-  function saltoSeguro(time) {
+  async function saltoSeguro(time) {
     if (!videoEl) return;
 
     const haciaAdelante = time > videoEl.currentTime;
 
-    // Calculamos un "Fake Time" a 10 segundos de distancia de nuestro destino.
-    let fakeTime = haciaAdelante ? (time - 10) : (time + 10);
-    if (haciaAdelante && fakeTime < 0) {
-      fakeTime = time + 10;
+    // Calculamos un "Pre Tiempo" a 10 segundos de distancia de nuestro destino.
+    let preTime = haciaAdelante ? (time - 10) : (time + 10);
+
+    if (haciaAdelante && preTime < 0) {
+      // Borde inicial: Si vamos adelante pero el tiempo es muy chico (ej. 0:05), 
+      // saltamos a 15s y usamos el botón de retroceso.
+      preTime = time + 10;
+    } else if (!haciaAdelante && videoEl.duration && preTime > videoEl.duration) {
+      // Borde final: Si vamos hacia atrás pero muy cerca del final del video (ej. 23:55 de 24:00),
+      // saltamos a 23:45 y usamos el botón de adelanto.
+      preTime = time - 10;
     }
 
     // UX HACK: Ocultamos el video temporalmente para que el usuario no vea 
@@ -144,44 +143,57 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl.style.opacity = '0';
 
     // 1. Engañamos a Bitmovin poniéndolo a 10s del destino
-    videoEl.currentTime = fakeTime;
-
-    // 2. MAGIA: Disparamos timeupdate para obligar a React a asimilar el fakeTime
+    videoEl.currentTime = preTime;
     videoEl.dispatchEvent(new Event('timeupdate'));
 
-    // 3. Le damos 400ms a React para que asimile el estado.
-    // (En la simulación descubrimos que si esto es muy corto, React calcula el salto
-    // desde la posición original, creando el bucle de arrastre de 10s en 10s).
-    setTimeout(() => {
-      if (!videoEl) return;
+    // 2. ESPERAMOS a que el video termine de cargar el preTime.
+    // Katamari bloquea/ignora los clics de la UI mientras está buffereando.
+    await new Promise(resolve => {
+      const checkInterval = setInterval(() => {
+        if (videoEl.readyState >= 3) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 50);
       
-      // Pulsamos el botón oficial. Katamari leerá su estado (que ahora sí es fakeTime)
-      // y sumará o restará 10, cayendo EXACTAMENTE en el tiempo destino.
-      if (haciaAdelante) {
-        const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
-        if (btnFwd) btnFwd.click();
-        else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, bubbles: true }));
-      } else {
-        const btnBck = document.querySelector('[data-testid="jump-backward-button"]');
-        if (btnBck) btnBck.click();
-        else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
-      }
+      // Timeout de seguridad (max 4 segundos de espera)
+      setTimeout(() => { clearInterval(checkInterval); resolve(); }, 4000);
+    });
 
-      // El clic ya ordenó oficialmente el salto a Bitmovin.
-      // Solo restauramos la visión al usuario después de un instante.
-      setTimeout(() => {
-        if (videoEl) videoEl.style.opacity = '1';
-      }, 150);
+    // 3. Ya no está buffereando. React procesará el clic sin problemas.
+    if (preTime < time) {
+      const btnFwd = document.querySelector('[data-testid="jump-forward-button"]');
+      if (btnFwd) btnFwd.click();
+      else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, bubbles: true }));
+    } else {
+      const btnBck = document.querySelector('[data-testid="jump-backward-button"]');
+      if (btnBck) btnBck.click();
+      else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, bubbles: true }));
+    }
 
-    }, 400);
+    // 4. Esperamos a que Katamari cargue el destino final antes de devolver la visión
+    await new Promise(resolve => {
+      const checkFinal = setInterval(() => {
+        if (videoEl.readyState >= 3 && Math.abs(videoEl.currentTime - time) < 1.5) {
+          clearInterval(checkFinal);
+          resolve();
+        }
+      }, 50);
+      
+      // Timeout de seguridad (max 4 segundos de espera extra)
+      setTimeout(() => { clearInterval(checkFinal); resolve(); }, 4000);
+    });
+
+    if (videoEl) videoEl.style.opacity = '1';
   }
 
   function moverTiempo(time) {
     if (!videoEl) return;
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       tiempoDestino = time;
+      //limpia y aplica un temposizador par amandar tiempoDestino = null despues de 6 segundos
       if (timerDestino) clearTimeout(timerDestino);
-      timerDestino = setTimeout(() => { tiempoDestino = null; }, 3000);
+      timerDestino = setTimeout(() => { tiempoDestino = null; }, 6000);
 
       saltoSeguro(time);
     }
