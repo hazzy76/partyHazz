@@ -189,18 +189,34 @@ window.PartyHazz.manejadorSync = (() => {
         const diferencia = Math.abs(tiempoLocal - tiempoEsperado);
 
         if (diferencia > TOLERANCIA_SYNC_SEG) {
-          // EVITAR EL BUCLE DE BUFFERING ABORTADO:
-          // Si nuestro reproductor está buffereando, NO le aplicamos el seek del SYNC_CHECK.
-          // Si lo hacemos, abortamos su descarga actual y lo mandamos a descargar 5 segundos 
-          // más adelante, atrapándolo en un bucle infinito de descargas abortadas.
+          // EVITAR EL BUCLE DE BUFFERING ABORTADO
           if (ctrl.estaBuffereando && ctrl.estaBuffereando()) {
             console.log(`[PartyHazz] Ignorando SYNC_CHECK porque estamos buffereando...`);
             return;
           }
 
-          console.log(`[PartyHazz] Drift detectado: ${diferencia.toFixed(2)}s. Corrigiendo...`);
+          // SOFT SYNC (Velocity Sync): 
+          // Si la diferencia es pequeña (ej. menos de 4s) y estamos reproduciendo, 
+          // aceleramos/frenamos el video ligeramente sin interrumpir la reproducción.
+          // Esto evita los molestos saltos (y tiempos de buffering extra) por pequeños lags.
+          if (diferencia < 4.0 && ctrl.estaReproduciendo()) {
+            const nuevoRate = (tiempoLocal < tiempoEsperado) ? 1.25 : 0.75;
+            ctrl.setPlaybackRate(nuevoRate);
+            console.log(`[PartyHazz] Soft Sync: Ajustando velocidad a ${nuevoRate}x para corregir ${diferencia.toFixed(2)}s`);
+            return;
+          }
+
+          // HARD SYNC:
+          // Si el lag es mayor a 4s, o si el video está pausado, aplicamos un salto rudo.
+          console.log(`[PartyHazz] Hard Sync: Drift detectado de ${diferencia.toFixed(2)}s. Forzando salto...`);
           ui.mostrarAjustando();
           ctrl.aplicarSeek(tiempoEsperado);
+        } else {
+          // Si la diferencia es menor a la tolerancia, estamos sincronizados. 
+          // Restauramos la velocidad a 1.0x (por si veníamos de un Soft Sync).
+          if (ctrl.setPlaybackRate) {
+             ctrl.setPlaybackRate(1.0);
+          }
         }
         break;
       }

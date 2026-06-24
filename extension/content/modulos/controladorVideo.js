@@ -221,6 +221,7 @@ window.PartyHazz.controladorVideo = (() => {
 
   async function aplicarPlay(time) {
     if (!videoEl) return;
+    videoEl.playbackRate = 1.0;
     setSyncLock();
     await moverTiempo(time);
 
@@ -236,6 +237,7 @@ window.PartyHazz.controladorVideo = (() => {
 
   async function aplicarPausa(time) {
     if (!videoEl) return;
+    videoEl.playbackRate = 1.0;
     setSyncLock();
     esperandoParaReproducir = false;
     await moverTiempo(time);
@@ -278,6 +280,12 @@ window.PartyHazz.controladorVideo = (() => {
     return videoEl ? videoEl.readyState < 3 : false;
   }
 
+  function setPlaybackRate(rate) {
+    if (videoEl && videoEl.playbackRate !== rate) {
+      videoEl.playbackRate = rate;
+    }
+  }
+
   return {
     iniciar,
     detener,
@@ -286,6 +294,7 @@ window.PartyHazz.controladorVideo = (() => {
     aplicarSeek,
     getTiempoActual,
     estaReproduciendo,
-    estaBuffereando
+    estaBuffereando,
+    setPlaybackRate
   };
 })();
