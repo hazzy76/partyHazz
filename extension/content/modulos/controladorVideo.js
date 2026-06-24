@@ -16,7 +16,6 @@ window.PartyHazz = window.PartyHazz || {};
 window.PartyHazz.controladorVideo = (() => {
   let videoEl = null;
   let esAccionSync = false;       // true = ignorar el proximo evento del video
-  let timerSyncLock = null;
   let callbackEvento = null;      // funcion a llamar cuando el usuario interactua
   let esperandoParaReproducir = false;
   let tiempoDestino = null;
@@ -100,23 +99,16 @@ window.PartyHazz.controladorVideo = (() => {
         esperandoParaReproducir = false;
         setSyncLock();
         videoEl.play().catch(err => console.warn('[PartyHazz] Play falló en canplay:', err));
-        releaseSyncLock(1000);
       }
     });
   }
 
   // --------------------------------------------------------------------------
-  // Bloqueo de bucles infinitos
+  // Cambia esAccionSync a true por 3 seg. se manera asincrona para que ignore los eventos de pausa, seeked, etc que se generen
   // --------------------------------------------------------------------------
 
   function setSyncLock() {
     esAccionSync = true;
-    if (timerSyncLock) clearTimeout(timerSyncLock);
-  }
-
-  function releaseSyncLock(delay = 1000) {
-    if (timerSyncLock) clearTimeout(timerSyncLock);
-    timerSyncLock = setTimeout(() => { esAccionSync = false; }, delay);
   }
 
   // --------------------------------------------------------------------------
@@ -201,13 +193,15 @@ window.PartyHazz.controladorVideo = (() => {
     if (!videoEl) return;
     if (Math.abs(videoEl.currentTime - time) > 0.5) {
       tiempoDestino = time;
-      
+      esAccionSync = true;
+
       await saltoSeguro(time);
 
       // Una vez terminado el salto, damos 500ms de gracia para atrapar 
       // y descartar el evento 'seeked' nativo de Bitmovin.
       setTimeout(() => { 
         tiempoDestino = null; 
+        esAccionSync = false;
       }, 500);
     }
   }
@@ -220,11 +214,9 @@ window.PartyHazz.controladorVideo = (() => {
     if (videoEl.readyState < 3) {
       esperandoParaReproducir = true;
       console.log('[PartyHazz] Esperando buffering antes de dar Play...');
-      releaseSyncLock(1000);
     } else {
       esperandoParaReproducir = false;
       videoEl.play().catch(err => console.warn('[PartyHazz] Play falló:', err));
-      releaseSyncLock(1000);
     }
   }
 
@@ -234,14 +226,12 @@ window.PartyHazz.controladorVideo = (() => {
     esperandoParaReproducir = false;
     await moverTiempo(time);
     videoEl.pause();
-    releaseSyncLock(1000);
   }
 
   async function aplicarSeek(time) {
     if (!videoEl) return;
     setSyncLock();
     await moverTiempo(time);
-    releaseSyncLock(1000);
   }
 
   // --------------------------------------------------------------------------
