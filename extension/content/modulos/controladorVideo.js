@@ -16,6 +16,8 @@ window.PartyHazz = window.PartyHazz || {};
 window.PartyHazz.controladorVideo = (() => {
   let videoEl = null;
   let esAccionSync = false;       // true = ignorar el proximo evento del video
+  let timerSyncLock = null;
+  let timerDebounceSeek = null;   // Evita envios multiples al arrastrar la barra
   let callbackEvento = null;      // funcion a llamar cuando el usuario interactua
   let esperandoParaReproducir = false;
   let tiempoDestino = null;
@@ -77,7 +79,14 @@ window.PartyHazz.controladorVideo = (() => {
         return;
       }
       if (esAccionSync) return;
-      callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
+
+      // DEBOUNCE (Filtro Anti-Eco): 
+      // Si el Host arrastra la barra, puede disparar múltiples 'seeked' en milisegundos.
+      // Esperamos 200ms sin nuevos saltos para confirmar el destino final y mandar 1 solo mensaje.
+      if (timerDebounceSeek) clearTimeout(timerDebounceSeek);
+      timerDebounceSeek = setTimeout(() => {
+        callbackEvento && callbackEvento({ type: 'IR_A', time: videoEl.currentTime });
+      }, 200);
     });
 
     // Auto-Pausa al saltar: Si el usuario salta mientras el video está reproduciendo,
@@ -99,16 +108,23 @@ window.PartyHazz.controladorVideo = (() => {
         esperandoParaReproducir = false;
         setSyncLock();
         videoEl.play().catch(err => console.warn('[PartyHazz] Play falló en canplay:', err));
+        releaseSyncLock(1000);
       }
     });
   }
 
   // --------------------------------------------------------------------------
-  // Cambia esAccionSync a true por 3 seg. se manera asincrona para que ignore los eventos de pausa, seeked, etc que se generen
+  // Bloqueo de bucles infinitos
   // --------------------------------------------------------------------------
 
   function setSyncLock() {
     esAccionSync = true;
+    if (timerSyncLock) clearTimeout(timerSyncLock);
+  }
+
+  function releaseSyncLock(delay = 1000) {
+    if (timerSyncLock) clearTimeout(timerSyncLock);
+    timerSyncLock = setTimeout(() => { esAccionSync = false; }, delay);
   }
 
   // --------------------------------------------------------------------------
@@ -124,17 +140,11 @@ window.PartyHazz.controladorVideo = (() => {
     let preTime = haciaAdelante ? (time - 10) : (time + 10);
 
     if (haciaAdelante && preTime < 0) {
-      // Borde inicial: Si vamos adelante pero el tiempo es muy chico (ej. 0:05), 
-      // saltamos a 15s y usamos el botón de retroceso.
       preTime = time + 10;
     } else if (!haciaAdelante && videoEl.duration && preTime > videoEl.duration) {
-      // Borde final: Si vamos hacia atrás pero muy cerca del final del video (ej. 23:55 de 24:00),
-      // saltamos a 23:45 y usamos el botón de adelanto.
       preTime = time - 10;
     }
 
-    // UX HACK: Ocultamos el video temporalmente para que el usuario no vea 
-    // los brincos visuales de 10s mientras engañamos a React.
     videoEl.style.transition = 'opacity 0.1s';
     videoEl.style.opacity = '0';
 
@@ -143,7 +153,6 @@ window.PartyHazz.controladorVideo = (() => {
     videoEl.dispatchEvent(new Event('timeupdate'));
 
     // 2. ESPERAMOS a que el video termine de cargar el preTime.
-    // Katamari bloquea/ignora los clics de la UI mientras está buffereando.
     await new Promise(resolve => {
       const checkInterval = setInterval(() => {
         if (videoEl.readyState >= 3) {
@@ -152,7 +161,6 @@ window.PartyHazz.controladorVideo = (() => {
         }
       }, 50);
       
-      // Timeout de seguridad (max 4 segundos de espera)
       setTimeout(() => { clearInterval(checkInterval); resolve(); }, 4000);
     });
 
@@ -176,7 +184,6 @@ window.PartyHazz.controladorVideo = (() => {
         }
       }, 50);
       
-      // Timeout de seguridad (max 4 segundos de espera extra)
       setTimeout(() => { clearInterval(checkFinal); resolve(); }, 4000);
     });
 
@@ -207,10 +214,11 @@ window.PartyHazz.controladorVideo = (() => {
 
     if (videoEl.readyState < 3) {
       esperandoParaReproducir = true;
-      console.log('[PartyHazz] Esperando buffering antes de dar Play...');
+      releaseSyncLock(1000);
     } else {
       esperandoParaReproducir = false;
       videoEl.play().catch(err => console.warn('[PartyHazz] Play falló:', err));
+      releaseSyncLock(1000);
     }
   }
 
@@ -220,12 +228,14 @@ window.PartyHazz.controladorVideo = (() => {
     esperandoParaReproducir = false;
     await moverTiempo(time);
     videoEl.pause();
+    releaseSyncLock(1000);
   }
 
   async function aplicarSeek(time) {
     if (!videoEl) return;
     setSyncLock();
     await moverTiempo(time);
+    releaseSyncLock(1000);
   }
 
   // --------------------------------------------------------------------------
