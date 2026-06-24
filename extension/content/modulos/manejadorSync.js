@@ -30,6 +30,7 @@ window.PartyHazz.manejadorSync = (() => {
   let estadoSala = null;   // { idSala, idParticipante, isHost }
   let urlServidor = 'ws://localhost:8080/ws';
   let timerSync = null;
+  let timerSoftSync = null; // Monitor local para Soft Sync
   let callbackEstado = null;   // Notifica cambios de estado al orchestrator
 
   // --------------------------------------------------------------------------
@@ -81,6 +82,7 @@ window.PartyHazz.manejadorSync = (() => {
 
   function desconectar() {
     detenerSyncCheck();
+    terminarSoftSync();
     if (socket) {
       socket.close(1000, 'DEJAR_SALA voluntario');
       socket = null;
@@ -186,37 +188,35 @@ window.PartyHazz.manejadorSync = (() => {
         const compensacion = calcularCompensacion(msg.sendTimestamp);
         const tiempoEsperado = msg.time + compensacion;
         const tiempoLocal = ctrl.getTiempoActual();
-        const diferencia = Math.abs(tiempoLocal - tiempoEsperado);
+        const diferencia = tiempoLocal - tiempoEsperado;
+        const absDiferencia = Math.abs(diferencia);
 
-        if (diferencia > TOLERANCIA_SYNC_SEG) {
+        if (absDiferencia > TOLERANCIA_SYNC_SEG) {
           // EVITAR EL BUCLE DE BUFFERING ABORTADO
           if (ctrl.estaBuffereando && ctrl.estaBuffereando()) {
-            console.log(`[PartyHazz] Ignorando SYNC_CHECK porque estamos buffereando...`);
             return;
           }
 
           // SOFT SYNC (Velocity Sync): 
-          // Si la diferencia es pequeña (ej. menos de 4s) y estamos reproduciendo, 
-          // aceleramos/frenamos el video ligeramente sin interrumpir la reproducción.
-          // Esto evita los molestos saltos (y tiempos de buffering extra) por pequeños lags.
-          if (diferencia < 4.0 && ctrl.estaReproduciendo()) {
-            const nuevoRate = (tiempoLocal < tiempoEsperado) ? 1.25 : 0.75;
+          // Aceleramos/frenamos el video y monitoreamos localmente.
+          if (absDiferencia < 4.0 && ctrl.estaReproduciendo()) {
+            const nuevoRate = (diferencia < 0) ? 1.25 : 0.8;
             ctrl.setPlaybackRate(nuevoRate);
-            console.log(`[PartyHazz] Soft Sync: Ajustando velocidad a ${nuevoRate}x para corregir ${diferencia.toFixed(2)}s`);
+            console.log(`[PartyHazz] Soft Sync: Velocidad a ${nuevoRate}x para corregir ${absDiferencia.toFixed(2)}s`);
+            
+            // Iniciar monitor local para detener el Soft Sync exacto en el punto de encuentro
+            iniciarSoftSync(tiempoEsperado, Date.now());
             return;
           }
 
           // HARD SYNC:
-          // Si el lag es mayor a 4s, o si el video está pausado, aplicamos un salto rudo.
-          console.log(`[PartyHazz] Hard Sync: Drift detectado de ${diferencia.toFixed(2)}s. Forzando salto...`);
+          console.log(`[PartyHazz] Hard Sync: Drift de ${absDiferencia.toFixed(2)}s. Forzando salto...`);
+          terminarSoftSync();
           ui.mostrarAjustando();
           ctrl.aplicarSeek(tiempoEsperado);
         } else {
-          // Si la diferencia es menor a la tolerancia, estamos sincronizados. 
-          // Restauramos la velocidad a 1.0x (por si veníamos de un Soft Sync).
-          if (ctrl.setPlaybackRate) {
-             ctrl.setPlaybackRate(1.0);
-          }
+          // Si estamos sincronizados, restauramos velocidad normal
+          terminarSoftSync();
         }
         break;
       }
@@ -301,6 +301,48 @@ window.PartyHazz.manejadorSync = (() => {
     if (timerSync) {
       clearInterval(timerSync);
       timerSync = null;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Soft Sync Local Monitor
+  // --------------------------------------------------------------------------
+
+  function iniciarSoftSync(tiempoDestinoHost, tsRecibido) {
+    const ctrl = window.PartyHazz.controladorVideo;
+    
+    if (timerSoftSync) clearInterval(timerSoftSync);
+    
+    timerSoftSync = setInterval(() => {
+      // Si el video se pausó, abortamos el soft sync
+      if (!ctrl.estaReproduciendo()) {
+        terminarSoftSync();
+        return;
+      }
+
+      // Proyectamos el tiempo del Host asumiendo que avanza a velocidad 1.0x
+      const transcurrido = (Date.now() - tsRecibido) / 1000;
+      const tiempoProyectadoHost = tiempoDestinoHost + transcurrido;
+      const tiempoLocal = ctrl.getTiempoActual();
+
+      const diferencia = tiempoLocal - tiempoProyectadoHost;
+
+      // Si la diferencia ya es imperceptible (< 0.15s), volvemos a 1.0x
+      if (Math.abs(diferencia) < 0.15) {
+         console.log(`[PartyHazz] Soft Sync exitoso. Restaurando velocidad a 1.0x`);
+         terminarSoftSync();
+      }
+    }, 200);
+  }
+
+  function terminarSoftSync() {
+    const ctrl = window.PartyHazz.controladorVideo;
+    if (timerSoftSync) {
+      clearInterval(timerSoftSync);
+      timerSoftSync = null;
+    }
+    if (ctrl && ctrl.setPlaybackRate) {
+      ctrl.setPlaybackRate(1.0);
     }
   }
 
